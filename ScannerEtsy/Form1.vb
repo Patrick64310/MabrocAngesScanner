@@ -46,7 +46,7 @@ Public Class Form1
     Private btnReset As Button
     Private chkDebug As CheckBox
 
-    Private uiTimer As New Timer()
+    Private uiTimer As New System.Windows.Forms.Timer()
 
     ' ====== Constructeur ======
     Public Sub New()
