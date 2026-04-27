@@ -1,11 +1,11 @@
-
 Imports System
 Imports System.Windows.Forms
 
 Module Program
     <STAThread>
     Sub Main()
-        MessageBox.Show("EXE exécuté")
+        Application.EnableVisualStyles()
+        Application.SetCompatibleTextRenderingDefault(False)
+        Application.Run(New Form1())
     End Sub
 End Module
-
