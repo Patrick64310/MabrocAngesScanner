@@ -1,4 +1,3 @@
-
 Imports Microsoft.Web.WebView2.WinForms
 Imports Microsoft.Web.WebView2.Core
 Imports System.Text.RegularExpressions
@@ -206,5 +205,4 @@ Public Class Form1
     End Sub
 
 End Class
-
 
