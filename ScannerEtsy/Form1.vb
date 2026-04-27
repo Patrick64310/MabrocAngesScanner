@@ -29,7 +29,7 @@ Public Class Form1
 
     ' ================= CONSTANTES =================
     Private Const ShopBaseUrl As String =
-        "https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&sort_order=date_desc&page={0}#items"
+        "https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={0}&sort_order=date_desc#items"
 
     Private ReadOnly ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
