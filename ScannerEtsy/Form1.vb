@@ -1,202 +1,206 @@
-
 Imports System
 Imports System.Net
 Imports System.Diagnostics
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Text.RegularExpressions
 Imports System.Windows.Forms
+Imports System.Drawing
 
 Public Class Form1
     Inherits Form
 
-    ' ====== Comptage / état ======
+    ' ================= ÉTAT =================
     Private TotalClicks As Integer = 0
     Private DeadLinks As Integer = 0
     Private ArticlesFound As Integer = 0
     Private CurrentPage As Integer = 1
 
-    ' ====== Contrôle exécution ======
-    Private cts As CancellationTokenSource
-    Private sw As New Stopwatch()
-    Private rnd As New Random()
+    Private ScanInitialDone As Boolean = False
+    Private StopRequested As Boolean = False
     Private DebugVisuel As Boolean = False
 
-    ' ====== Données ======
+    ' ================= DONNÉES =================
     Private UrlList As New List(Of String)
+    Private UrlIndex As Integer = 0
 
-    ' Boutique Etsy (identique Excel)
+    ' ================= TEMPS =================
+    Private StartTime As DateTime
+    Private uiTimer As System.Windows.Forms.Timer
+
+    ' ================= CONSTANTES =================
     Private Const ShopBaseUrl As String =
         "https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&sort_order=date_desc&page={0}#items"
 
-    ' Regex STRICTEMENT identique à Excel
     Private ReadOnly ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
-    ' ====== UI ======
+    ' ================= UI =================
     Private lblTotal As Label
     Private lblFound As Label
     Private lblDead As Label
-    Private lblTime As Label
     Private lblPage As Label
+    Private lblTime As Label
 
     Private btnStart As Button
     Private btnStop As Button
     Private btnReset As Button
     Private chkDebug As CheckBox
+    Private picLogo As PictureBox
 
-    Private uiTimer As New System.Windows.Forms.Timer()
-
-    ' ====== Constructeur ======
+    ' ================= FORM =================
     Public Sub New()
-        ' Fenêtre (MINIMUM OBLIGATOIRE)
         Me.Text = "Mabroc'Anges – Scanner Etsy"
-        Me.Width = 640
-        Me.Height = 360
+        Me.Width = 700
+        Me.Height = 420
         Me.StartPosition = FormStartPosition.CenterScreen
-        Me.ShowInTaskbar = True
 
-        ' Initialisation interface
         InitializeUI()
 
-        ' Temps d'utilisation
-        sw.Start()
-        AddHandler uiTimer.Tick, AddressOf OnUiTimer
+        StartTime = DateTime.Now
+        uiTimer = New System.Windows.Forms.Timer()
         uiTimer.Interval = 500
+        AddHandler uiTimer.Tick, AddressOf RefreshUI
         uiTimer.Start()
     End Sub
 
-    ' ====== Initialisation UI ======
+    ' ================= UI INIT =================
     Private Sub InitializeUI()
-        lblTotal = New Label() With {.Left = 20, .Top = 20, .Width = 300}
-        lblFound = New Label() With {.Left = 20, .Top = 45, .Width = 300}
-        lblDead = New Label() With {.Left = 20, .Top = 70, .Width = 300}
-        lblPage = New Label() With {.Left = 20, .Top = 95, .Width = 300}
-        lblTime = New Label() With {.Left = 20, .Top = 120, .Width = 300}
 
-        btnStart = New Button() With {.Text = "START", .Left = 360, .Top = 40, .Width = 100}
-        btnStop = New Button() With {.Text = "STOP", .Left = 360, .Top = 75, .Width = 100}
-        btnReset = New Button() With {.Text = "RESET", .Left = 360, .Top = 110, .Width = 100}
+        lblTotal = New Label() With {.Left = 30, .Top = 120, .Width = 300}
+        lblFound = New Label() With {.Left = 30, .Top = 150, .Width = 300}
+        lblDead = New Label() With {.Left = 30, .Top = 180, .Width = 300}
+        lblPage = New Label() With {.Left = 30, .Top = 210, .Width = 300}
+        lblTime = New Label() With {.Left = 30, .Top = 240, .Width = 300}
+
+        btnStart = New Button() With {.Text = "START", .Left = 420, .Top = 150, .Width = 120}
+        btnStop = New Button() With {.Text = "STOP", .Left = 420, .Top = 190, .Width = 120}
+        btnReset = New Button() With {.Text = "RESET", .Left = 420, .Top = 230, .Width = 120}
 
         chkDebug = New CheckBox() With {
             .Text = "Debug visuel",
-            .Left = 360,
-            .Top = 150,
-            .Width = 120
+            .Left = 420,
+            .Top = 270,
+            .Width = 150
         }
 
-        AddHandler btnStart.Click, AddressOf OnStart
-        AddHandler btnStop.Click, AddressOf OnStop
-        AddHandler btnReset.Click, AddressOf OnReset
+        AddHandler btnStart.Click, AddressOf StartScan
+        AddHandler btnStop.Click, AddressOf StopScan
+        AddHandler btnReset.Click, AddressOf ResetAll
         AddHandler chkDebug.CheckedChanged, Sub() DebugVisuel = chkDebug.Checked
+
+        picLogo = New PictureBox()
+        picLogo.SetBounds(520, 20, 128, 128)
+        picLogo.SizeMode = PictureBoxSizeMode.Zoom
+        If IO.File.Exists("logo.png") Then
+            picLogo.Image = Image.FromFile("logo.png")
+        End If
 
         Me.Controls.AddRange(New Control() {
             lblTotal, lblFound, lblDead, lblPage, lblTime,
-            btnStart, btnStop, btnReset, chkDebug
+            btnStart, btnStop, btnReset, chkDebug, picLogo
         })
 
-        RefreshLabels()
+        RefreshUI(Nothing, Nothing)
     End Sub
 
-    ' ====== UI Tick ======
-    Private Sub OnUiTimer(sender As Object, e As EventArgs)
-        RefreshLabels()
-    End Sub
-
-    Private Sub RefreshLabels()
+    ' ================= UI UPDATE =================
+    Private Sub RefreshUI(sender As Object, e As EventArgs)
         lblTotal.Text = $"Cumul Total clics : {TotalClicks}"
         lblFound.Text = $"Articles trouvés : {ArticlesFound}"
         lblDead.Text = $"Liens morts : {DeadLinks}"
         lblPage.Text = $"Page boutique en cours : {CurrentPage}"
-        lblTime.Text = $"Temps utilisation : {sw.Elapsed:hh\:mm\:ss}"
+        lblTime.Text = $"Temps utilisation : {(DateTime.Now - StartTime):hh\:mm\:ss}"
     End Sub
 
-    ' ====== Boutons ======
-    Private Sub OnStart(sender As Object, e As EventArgs)
-        btnStart.Enabled = False
-        btnStop.Enabled = True
-
-        cts = New CancellationTokenSource()
-
-        ' Toujours recréer la liste (Excel-like)
+    ' ================= START =================
+    Private Sub StartScan(sender As Object, e As EventArgs)
+        StopRequested = False
+        ScanInitialDone = False
         UrlList.Clear()
-        ArticlesFound = 0
+        UrlIndex = 0
         CurrentPage = 1
 
-        ' Lancer découverte + boucle ouverture
-        Task.Run(Sub() DiscoverUrls(cts.Token))
-        Task.Run(Sub() OpenLinksLoop(cts.Token))
+        Dim scanThread As New Thread(AddressOf DiscoverUrls)
+        scanThread.IsBackground = True
+        scanThread.Start()
+
+        Dim openThread As New Thread(AddressOf OpenUrlsLoop)
+        openThread.IsBackground = True
+        openThread.Start()
     End Sub
 
-    Private Sub OnStop(sender As Object, e As EventArgs)
-        If cts IsNot Nothing Then cts.Cancel()
-        btnStart.Enabled = True
-        btnStop.Enabled = False
+    ' ================= STOP =================
+    Private Sub StopScan(sender As Object, e As EventArgs)
+        StopRequested = True
     End Sub
 
-    Private Sub OnReset(sender As Object, e As EventArgs)
-        OnStop(Nothing, Nothing)
+    ' ================= RESET =================
+    Private Sub ResetAll(sender As Object, e As EventArgs)
+        StopRequested = True
 
         TotalClicks = 0
         DeadLinks = 0
         ArticlesFound = 0
-        CurrentPage = 1
         UrlList.Clear()
-
-        RefreshLabels()
+        UrlIndex = 0
+        CurrentPage = 1
+        ScanInitialDone = False
     End Sub
 
-    ' ====== Découverte URLs (infinie, STOP only) ======
-    Private Sub DiscoverUrls(token As CancellationToken)
-        Do While Not token.IsCancellationRequested
+    ' ================= DISCOVER =================
+    Private Sub DiscoverUrls()
+
+        Do While Not StopRequested
+
             Dim html As String = ""
-            Dim pageUrl = String.Format(ShopBaseUrl, CurrentPage)
 
             Try
                 Using wc As New WebClient()
                     wc.Headers.Add("User-Agent", "Mozilla/5.0")
-                    html = wc.DownloadString(pageUrl)
+                    html = wc.DownloadString(String.Format(ShopBaseUrl, CurrentPage))
                 End Using
             Catch
-                CurrentPage += 1
+                Thread.Sleep(3000)
                 Continue Do
             End Try
 
             Dim matches = ListingRegex.Matches(html)
-            For Each m As Match In matches
-                Dim u = m.Groups(1).Value
-                SyncLock UrlList
+
+            If matches.Count > 0 Then
+                For Each m As Match In matches
+                    Dim u = m.Groups(1).Value
                     If Not UrlList.Contains(u) Then
                         UrlList.Add(u)
-                        ArticlesFound += 1
                     End If
-                End SyncLock
-            Next
+                Next
 
-            CurrentPage += 1
-            Thread.Sleep(rnd.Next(3000, 6000))
+                If Not ScanInitialDone Then
+                    ArticlesFound = UrlList.Count
+                    ScanInitialDone = True
+                End If
+
+                CurrentPage += 1
+            End If
+
+            Thread.Sleep(4000)
         Loop
     End Sub
 
-    ' ====== Ouverture URLs (minimisé, 1s, STOP only) ======
-    Private Sub OpenLinksLoop(token As CancellationToken)
-        Dim index As Integer = 0
+    ' ================= OPEN =================
+    Private Sub OpenUrlsLoop()
 
-        Do While Not token.IsCancellationRequested
-            Dim url As String = Nothing
+        Do While Not StopRequested
 
-            SyncLock UrlList
-                If index < UrlList.Count Then
-                    url = UrlList(index)
-                    index += 1
-                End If
-            End SyncLock
-
-            If url Is Nothing Then
-                Thread.Sleep(1500)
+            If UrlIndex >= UrlList.Count Then
+                Thread.Sleep(1000)
                 Continue Do
             End If
+
+            Dim url = UrlList(UrlIndex)
+            UrlIndex += 1
+
+            TotalClicks += 1
 
             Try
                 If DebugVisuel Then
@@ -208,20 +212,14 @@ Public Class Form1
                     p.StartInfo.UseShellExecute = True
                     p.StartInfo.WindowStyle = ProcessWindowStyle.Minimized
                     p.Start()
-
                     Thread.Sleep(1000)
-
                     If Not p.HasExited Then p.Kill()
                 End If
-
-                TotalClicks += 1
-
             Catch
                 DeadLinks += 1
-                Thread.Sleep(30000)
             End Try
 
-            Thread.Sleep(rnd.Next(4000, 8000))
+            Thread.Sleep(5000)
         Loop
     End Sub
 
