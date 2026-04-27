@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.Text.RegularExpressions
 Imports System.Windows.Forms
 Imports System.Drawing
+Imports System.IO
 
 Public Class Form1
     Inherits Form
@@ -49,8 +50,8 @@ Public Class Form1
     ' ================= FORM =================
     Public Sub New()
         Me.Text = "Mabroc'Anges – Scanner Etsy"
-        Me.Width = 700
-        Me.Height = 420
+        Me.Width = 720
+        Me.Height = 440
         Me.StartPosition = FormStartPosition.CenterScreen
 
         InitializeUI()
@@ -65,21 +66,21 @@ Public Class Form1
     ' ================= UI INIT =================
     Private Sub InitializeUI()
 
-        lblTotal = New Label() With {.Left = 30, .Top = 120, .Width = 320}
-        lblFound = New Label() With {.Left = 30, .Top = 150, .Width = 320}
-        lblDead = New Label() With {.Left = 30, .Top = 180, .Width = 320}
-        lblPage = New Label() With {.Left = 30, .Top = 210, .Width = 320}
-        lblTime = New Label() With {.Left = 30, .Top = 240, .Width = 320}
+        lblTotal = New Label() With {.Left = 30, .Top = 140, .Width = 350}
+        lblFound = New Label() With {.Left = 30, .Top = 170, .Width = 350}
+        lblDead = New Label() With {.Left = 30, .Top = 200, .Width = 350}
+        lblPage = New Label() With {.Left = 30, .Top = 230, .Width = 350}
+        lblTime = New Label() With {.Left = 30, .Top = 260, .Width = 350}
 
-        btnStart = New Button() With {.Text = "START", .Left = 420, .Top = 150, .Width = 120}
-        btnStop = New Button() With {.Text = "STOP", .Left = 420, .Top = 190, .Width = 120}
-        btnReset = New Button() With {.Text = "RESET", .Left = 420, .Top = 230, .Width = 120}
+        btnStart = New Button() With {.Text = "START", .Left = 430, .Top = 170, .Width = 130}
+        btnStop = New Button() With {.Text = "STOP", .Left = 430, .Top = 210, .Width = 130}
+        btnReset = New Button() With {.Text = "RESET", .Left = 430, .Top = 250, .Width = 130}
 
         chkDebug = New CheckBox() With {
             .Text = "Debug visuel",
-            .Left = 420,
-            .Top = 270,
-            .Width = 150
+            .Left = 430,
+            .Top = 290,
+            .Width = 160
         }
 
         AddHandler btnStart.Click, AddressOf StartScan
@@ -87,10 +88,11 @@ Public Class Form1
         AddHandler btnReset.Click, AddressOf ResetAll
         AddHandler chkDebug.CheckedChanged, Sub() DebugVisuel = chkDebug.Checked
 
+        ' Logo
         picLogo = New PictureBox()
         picLogo.SetBounds(520, 20, 128, 128)
         picLogo.SizeMode = PictureBoxSizeMode.Zoom
-        If IO.File.Exists("logo.png") Then
+        If File.Exists("logo.png") Then
             picLogo.Image = Image.FromFile("logo.png")
         End If
 
@@ -125,7 +127,34 @@ Public Class Form1
         UrlList.Clear()
     End Sub
 
-    ' ================= BOUCLE EXCEL =================
+    ' ================= TELECHARGEMENT HTML (clé) =================
+    Private Function DownloadHtml(url As String) As String
+
+        ServicePointManager.SecurityProtocol =
+            SecurityProtocolType.Tls12 Or SecurityProtocolType.Tls13
+
+        Dim req = CType(WebRequest.Create(url), HttpWebRequest)
+
+        req.Method = "GET"
+        req.AllowAutoRedirect = True
+        req.CookieContainer = New CookieContainer()
+        req.UserAgent =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " &
+            "AppleWebKit/537.36 (KHTML, like Gecko) " &
+            "Chrome/123.0.0.0 Safari/537.36"
+
+        req.Headers.Add("Accept-Language", "fr-FR,fr;q=0.9")
+        req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+        Using resp = CType(req.GetResponse(), HttpWebResponse)
+            Using sr As New StreamReader(resp.GetResponseStream())
+                Return sr.ReadToEnd()
+            End Using
+        End Using
+
+    End Function
+
+    ' ================= BOUCLE SYNCHRONE (COMME EXCEL) =================
     Private Sub StartScan(sender As Object, e As EventArgs)
 
         StopRequested = False
@@ -135,16 +164,13 @@ Public Class Form1
         ArticlesFound = 0
         CurrentPage = 1
 
-        ' === 1. SCAN INITIAL (une seule fois comme Excel) ===
-        Dim html As String = ""
+        ' === 1. SCAN INITIAL (snapshot Excel) ===
+        Dim html As String
 
         Try
-            Using wc As New WebClient()
-                wc.Headers.Add("User-Agent", "Mozilla/5.0")
-                html = wc.DownloadString(String.Format(ShopBaseUrl, CurrentPage))
-            End Using
+            html = DownloadHtml(String.Format(ShopBaseUrl, CurrentPage))
         Catch
-            MessageBox.Show("Impossible de charger la boutique.")
+            MessageBox.Show("Impossible de charger la boutique Etsy.")
             Exit Sub
         End Try
 
@@ -154,8 +180,9 @@ Public Class Form1
         Next
 
         ArticlesFound = UrlList.Count
+        RefreshUI(Nothing, Nothing)
 
-        ' === 2. BOUCLE PRINCIPALE (STOP uniquement) ===
+        ' === 2. BOUCLE PRINCIPALE ===
         Dim index As Integer = 0
 
         Do While Not StopRequested AndAlso index < UrlList.Count
@@ -188,4 +215,5 @@ Public Class Form1
     End Sub
 
 End Class
+
 
