@@ -32,14 +32,15 @@ Public Class Form1
     Private lblArticles As Label
     Private lblDead As Label
     Private lblTime As Label
+    Private lblCurrentArticle As Label
     Private btnStart As Button
     Private btnStop As Button
     Private chkSaveHtml As CheckBox
     Private chkVisualiserArticles As CheckBox
 
     ' ========== WEBVIEW ==========
-    Private webPages As WebView2        ' génération HTML pages boutique
-    Private webArticle As WebView2      ' affichage article 1 seconde
+    Private webPages As WebView2
+    Private webArticle As WebView2
 
     ' ========== LOG ==========
     Private LogPath As String =
@@ -48,22 +49,21 @@ Public Class Form1
     Private PagesHtmlDirectory As String =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pages_html")
 
-    ' ========== REGEX EXCEL ==========
+    ' ========== REGEX (SANS CRITÈRE @) ==========
     Private ListingRegex As New Regex(
-         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?@]+)",
+        "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
     Public Sub New()
-
-        Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict / WebView2)"
+        Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict • Mémoire)"
         Me.Width = 900
-        Me.Height = 520
+        Me.Height = 560
         Me.StartPosition = FormStartPosition.CenterScreen
 
         InitializeUI()
 
         uiTimer = New Timer()
-        uiTimer.Interval = 3000
+        uiTimer.Interval = 1000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
 
         WriteLog("APPLICATION LANCÉE")
@@ -77,45 +77,49 @@ Public Class Form1
         lblDead = New Label() With {.Left = 20, .Top = 70, .Width = 850}
         lblTime = New Label() With {.Left = 20, .Top = 95, .Width = 850}
 
+        lblCurrentArticle = New Label() With {
+            .Left = 20,
+            .Top = 125,
+            .Width = 850,
+            .Height = 40,
+            .BorderStyle = BorderStyle.FixedSingle,
+            .Text = "Article en cours :"
+        }
+
         chkSaveHtml = New CheckBox() With {
             .Text = "Sauvegarder HTML (debug / audit)",
             .Left = 20,
-            .Top = 130,
-            .Width = 320
+            .Top = 175,
+            .Width = 350
         }
 
         chkVisualiserArticles = New CheckBox() With {
             .Text = "Visualiser les pages articles (1 seconde)",
             .Left = 20,
-            .Top = 160,
-            .Width = 360,
+            .Top = 205,
+            .Width = 380,
             .Checked = True
         }
 
-        btnStart = New Button() With {.Text = "START", .Left = 450, .Top = 145, .Width = 140}
-        btnStop = New Button() With {.Text = "STOP", .Left = 620, .Top = 145, .Width = 140}
+        btnStart = New Button() With {.Text = "START", .Left = 500, .Top = 195, .Width = 140}
+        btnStop = New Button() With {.Text = "STOP", .Left = 660, .Top = 195, .Width = 140}
 
         AddHandler btnStart.Click, AddressOf StartProcessAsync
         AddHandler btnStop.Click, AddressOf StopProcess
 
-        ' WebView2 invisible (pages boutique)
         webPages = New WebView2() With {.Visible = False}
-        Controls.Add(webPages)
-
-        ' WebView2 pour affichage articles
         webArticle = New WebView2() With {
             .Left = 20,
-            .Top = 200,
+            .Top = 245,
             .Width = 850,
             .Height = 260,
             .Visible = False
         }
-        Controls.Add(webArticle)
 
         Controls.AddRange({
-            lblClicks, lblArticles, lblDead, lblTime,
-            chkSaveHtml, chkVisualiserArticles,
-            btnStart, btnStop
+            lblClicks, lblArticles, lblDead, lblTime, lblCurrentArticle,
+            chkSaveHtml, chkVisualiserArticles, btnStart, btnStop,
+            webPages, webArticle
         })
 
         UpdateUI(Nothing, Nothing)
@@ -137,33 +141,30 @@ Public Class Form1
         PagesHtml.Clear()
         PagesUrl.Clear()
         ArticlesUrl.Clear()
-
         TotalClicks = 0
         DeadLinks = 0
         ArticlesFound = 0
+        lblCurrentArticle.Text = "Article en cours :"
 
         WriteLog("START")
 
-        ' Initialisation WebView2
         Await webPages.EnsureCoreWebView2Async()
         Await webArticle.EnsureCoreWebView2Async()
 
-        ' ====== GÉNÉRATION HTML PAGES ======
         If chkSaveHtml.Checked Then
             Directory.CreateDirectory(PagesHtmlDirectory)
         End If
 
+        ' ===== GÉNÉRATION HTML =====
         For page = 1 To 20
             Dim url =
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}&sort_order=date_desc#items"
 
-            WriteLog("NAVIGATION PAGE : " & url)
             webPages.Source = New Uri(url)
             Await Task.Delay(6000)
 
             Dim html As String =
                 Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
-
             html = html.Replace("\""", """")
 
             PagesHtml(page) = html
@@ -174,17 +175,18 @@ Public Class Form1
                 File.WriteAllText(filePath, html)
             End If
 
-            If html.Contains("Aucun article en vente pour le moment") Then
-                Exit For
-            End If
+            If html.Contains("Aucun article en vente pour le moment") Then Exit For
         Next
 
-        ' ====== EXTRACTION ARTICLES ======
+        ' ===== EXTRACTION ARTICLES =====
         For Each kvp In PagesHtml
             For Each m As Match In ListingRegex.Matches(kvp.Value)
-                If Not ArticlesUrl.Contains(m.Value) Then
-                    ArticlesUrl.Add(m.Value)
-                    WriteLog("ARTICLE TROUVÉ : " & m.Value)
+                Dim url = m.Value.Trim()
+                If url.Length < 100 AndAlso Not ArticlesUrl.Contains(url) Then
+                    ArticlesUrl.Add(url)
+                    WriteLog("ARTICLE ACCEPTÉ : " & url)
+                ElseIf url.Length >= 100 Then
+                    WriteLog("ARTICLE REJETÉ (LONGUEUR ≥ 100) : " & url)
                 End If
             Next
         Next
@@ -192,7 +194,7 @@ Public Class Form1
         ArticlesFound = ArticlesUrl.Count
         If ArticlesFound = 0 Then Running = False : Exit Sub
 
-        ' ====== NAVIGATION ARTICLES ======
+        ' ===== NAVIGATION ARTICLES =====
         LoopRunning = True
         LoopStartTime = DateTime.Now
         uiTimer.Start()
@@ -202,15 +204,14 @@ Public Class Form1
         For Each articleUrl In ArticlesUrl
             If Not Running Then Exit For
 
+            lblCurrentArticle.Text = "Article en cours : " & articleUrl
             WriteLog("CLIC ARTICLE : " & articleUrl)
             TotalClicks += 1
 
             If chkVisualiserArticles.Checked Then
                 webArticle.Visible = True
                 webArticle.Source = New Uri(articleUrl)
-
                 Await Task.Delay(1000)
-
                 webArticle.Source = New Uri("about:blank")
                 webArticle.Visible = False
             End If
@@ -218,23 +219,16 @@ Public Class Form1
             Await Task.Delay(rnd.Next(3000, 9000))
         Next
 
-        StopTimerInternal()
-        WriteLog("FIN")
+        StopProcess(Nothing, Nothing)
     End Sub
 
     ' ========== STOP ==========
     Private Sub StopProcess(sender As Object, e As EventArgs)
         Running = False
-        StopTimerInternal()
+        uiTimer.Stop()
+        LoopRunning = False
+        lblCurrentArticle.Text = "Article en cours :"
         WriteLog("STOP")
-    End Sub
-
-    Private Sub StopTimerInternal()
-        If LoopRunning Then
-            uiTimer.Stop()
-            LoopRunning = False
-            WriteLog("TIMER STOP")
-        End If
     End Sub
 
     ' ========== UI UPDATE ==========
@@ -253,4 +247,3 @@ Public Class Form1
     End Sub
 
 End Class
-
