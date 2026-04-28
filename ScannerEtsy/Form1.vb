@@ -19,7 +19,10 @@ Public Class Form1
         AddHandler Me.Load, AddressOf OnLoad
     End Sub
 
-    Private Async Sub OnLoad(sender As Object, e As EventArgs)
+    
+Private Sub Form1_Load(sender As Object, e As EventArgs) _
+    Handles MyBase.Load
+
         Await web.EnsureCoreWebView2Async()
         web.Source = New Uri("https://www.etsy.com")
     End Sub
