@@ -50,7 +50,7 @@ Public Class Form1
 
     ' ========== REGEX EXCEL ==========
     Private ListingRegex As New Regex(
-        "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
+         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?@]+)",
         RegexOptions.IgnoreCase)
 
     Public Sub New()
@@ -63,7 +63,7 @@ Public Class Form1
         InitializeUI()
 
         uiTimer = New Timer()
-        uiTimer.Interval = 1000
+        uiTimer.Interval = 3000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
 
         WriteLog("APPLICATION LANCÉE")
