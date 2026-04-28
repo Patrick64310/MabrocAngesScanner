@@ -17,14 +17,11 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publish Self‑Contained EXE
+
+      - name: Publish Self-Contained EXE
         working-directory: ScannerEtsy
-        run: |
-          dotnet publish -c Release -r win-x64 ^
-            --self-contained true ^
-            /p:PublishSingleFile=true ^
-            /p:IncludeNativeLibrariesForSelfExtract=true ^
-            /p:EnableCompressionInSingleFile=true
+        run: dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:EnableCompressionInSingleFile=true
+
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
