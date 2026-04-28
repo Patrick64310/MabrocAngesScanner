@@ -9,26 +9,25 @@ Imports Microsoft.Web.WebView2.Core
 Public Class Form1
     Inherits Form
 
-    ' ================= HTML EN MÉMOIRE =================
+    ' ========== HTML EN MÉMOIRE ==========
     Private PagesHtml As New Dictionary(Of Integer, String)
 
-    ' ================= LISTES MÉTIER =================
+    ' ========== LISTES MÉTIER ==========
     Private PagesUrl As New List(Of String)
     Private ArticlesUrl As New List(Of String)
 
-    ' ================= ÉTAT =================
+    ' ========== ÉTAT ==========
     Private Running As Boolean = False
     Private LoopRunning As Boolean = False
-
     Private TotalClicks As Integer = 0
     Private DeadLinks As Integer = 0
     Private ArticlesFound As Integer = 0
 
-    ' ================= TEMPS =================
+    ' ========== TEMPS ==========
     Private LoopStartTime As DateTime
     Private uiTimer As Timer
 
-    ' ================= UI =================
+    ' ========== UI ==========
     Private lblClicks As Label
     Private lblArticles As Label
     Private lblDead As Label
@@ -38,26 +37,27 @@ Public Class Form1
     Private chkSaveHtml As CheckBox
     Private chkVisualiserArticles As CheckBox
 
-    ' ================= LOG =================
+    ' ========== WEBVIEW ==========
+    Private webPages As WebView2        ' génération HTML pages boutique
+    Private webArticle As WebView2      ' affichage article 1 seconde
+
+    ' ========== LOG ==========
     Private LogPath As String =
-        System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
 
-    ' ================= OPTION FICHIERS HTML =================
     Private PagesHtmlDirectory As String =
-        System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pages_html")
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pages_html")
 
-    ' ================= REGEX EXCEL =================
+    ' ========== REGEX EXCEL ==========
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
-    ' ================= WEBVIEW =================
-    Private web As WebView2
-
     Public Sub New()
-        Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict • Mémoire)"
-        Me.Width = 860
-        Me.Height = 420
+
+        Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict / WebView2)"
+        Me.Width = 900
+        Me.Height = 520
         Me.StartPosition = FormStartPosition.CenterScreen
 
         InitializeUI()
@@ -69,34 +69,48 @@ Public Class Form1
         WriteLog("APPLICATION LANCÉE")
     End Sub
 
-    ' ================= UI =================
+    ' ========== UI ==========
     Private Sub InitializeUI()
 
-        lblClicks = New Label() With {.Left = 20, .Top = 30, .Width = 800}
-        lblArticles = New Label() With {.Left = 20, .Top = 60, .Width = 800}
-        lblDead = New Label() With {.Left = 20, .Top = 90, .Width = 800}
-        lblTime = New Label() With {.Left = 20, .Top = 120, .Width = 800}
+        lblClicks = New Label() With {.Left = 20, .Top = 20, .Width = 850}
+        lblArticles = New Label() With {.Left = 20, .Top = 45, .Width = 850}
+        lblDead = New Label() With {.Left = 20, .Top = 70, .Width = 850}
+        lblTime = New Label() With {.Left = 20, .Top = 95, .Width = 850}
 
         chkSaveHtml = New CheckBox() With {
-            .Text = "Sauvegarder HTML sur disque (debug / audit)",
+            .Text = "Sauvegarder HTML (debug / audit)",
             .Left = 20,
-            .Top = 160,
-            .Width = 350
+            .Top = 130,
+            .Width = 320
         }
 
         chkVisualiserArticles = New CheckBox() With {
-            .Text = "Visualiser les pages articles",
+            .Text = "Visualiser les pages articles (1 seconde)",
             .Left = 20,
-            .Top = 190,
-            .Width = 300,
+            .Top = 160,
+            .Width = 360,
             .Checked = True
         }
 
-        btnStart = New Button() With {.Text = "START", .Left = 500, .Top = 185, .Width = 140}
-        btnStop = New Button() With {.Text = "STOP", .Left = 660, .Top = 185, .Width = 140}
+        btnStart = New Button() With {.Text = "START", .Left = 450, .Top = 145, .Width = 140}
+        btnStop = New Button() With {.Text = "STOP", .Left = 620, .Top = 145, .Width = 140}
 
         AddHandler btnStart.Click, AddressOf StartProcessAsync
         AddHandler btnStop.Click, AddressOf StopProcess
+
+        ' WebView2 invisible (pages boutique)
+        webPages = New WebView2() With {.Visible = False}
+        Controls.Add(webPages)
+
+        ' WebView2 pour affichage articles
+        webArticle = New WebView2() With {
+            .Left = 20,
+            .Top = 200,
+            .Width = 850,
+            .Height = 260,
+            .Visible = False
+        }
+        Controls.Add(webArticle)
 
         Controls.AddRange({
             lblClicks, lblArticles, lblDead, lblTime,
@@ -107,15 +121,14 @@ Public Class Form1
         UpdateUI(Nothing, Nothing)
     End Sub
 
-    ' ================= LOG =================
+    ' ========== LOG ==========
     Private Sub WriteLog(msg As String)
         File.AppendAllText(
             LogPath,
-            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}" & Environment.NewLine
-        )
+            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}" & Environment.NewLine)
     End Sub
 
-    ' ================= START =================
+    ' ========== START ==========
     Private Async Sub StartProcessAsync(sender As Object, e As EventArgs)
 
         If Running Then Exit Sub
@@ -131,29 +144,47 @@ Public Class Form1
 
         WriteLog("START")
 
-        Await GenerateHtmlPagesAsync()
+        ' Initialisation WebView2
+        Await webPages.EnsureCoreWebView2Async()
+        Await webArticle.EnsureCoreWebView2Async()
 
-        ' ===== BOUCLE PAGES =====
-        For page As Integer = 1 To 20
-            If Not PagesHtml.ContainsKey(page) Then Exit For
+        ' ====== GÉNÉRATION HTML PAGES ======
+        If chkSaveHtml.Checked Then
+            Directory.CreateDirectory(PagesHtmlDirectory)
+        End If
 
-            Dim pageUrl =
+        For page = 1 To 20
+            Dim url =
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}&sort_order=date_desc#items"
 
-            WriteLog("PAGE PARCOURUE : " & pageUrl)
+            WriteLog("NAVIGATION PAGE : " & url)
+            webPages.Source = New Uri(url)
+            Await Task.Delay(6000)
 
-            Dim html = PagesHtml(page)
-            If html.Contains("Aucun article en vente pour le moment") Then Exit For
+            Dim html As String =
+                Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
 
-            PagesUrl.Add(pageUrl)
+            html = html.Replace("\""", """")
+
+            PagesHtml(page) = html
+
+            If chkSaveHtml.Checked Then
+                Dim filePath As String =
+                    Path.Combine(PagesHtmlDirectory, $"page{page}.html")
+                File.WriteAllText(filePath, html)
+            End If
+
+            If html.Contains("Aucun article en vente pour le moment") Then
+                Exit For
+            End If
         Next
 
-        ' ===== EXTRACTION ARTICLES =====
+        ' ====== EXTRACTION ARTICLES ======
         For Each kvp In PagesHtml
             For Each m As Match In ListingRegex.Matches(kvp.Value)
                 If Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
-                    WriteLog("ARTICLE TROUVE : " & m.Value)
+                    WriteLog("ARTICLE TROUVÉ : " & m.Value)
                 End If
             Next
         Next
@@ -161,7 +192,7 @@ Public Class Form1
         ArticlesFound = ArticlesUrl.Count
         If ArticlesFound = 0 Then Running = False : Exit Sub
 
-        ' ===== NAVIGATION ARTICLES =====
+        ' ====== NAVIGATION ARTICLES ======
         LoopRunning = True
         LoopStartTime = DateTime.Now
         uiTimer.Start()
@@ -171,31 +202,27 @@ Public Class Form1
         For Each articleUrl In ArticlesUrl
             If Not Running Then Exit For
 
-            Try
-                WriteLog("CLIC ARTICLE : " & articleUrl)
-                TotalClicks += 1
+            WriteLog("CLIC ARTICLE : " & articleUrl)
+            TotalClicks += 1
 
-                If chkVisualiserArticles.Checked Then
-                    Dim psi As New ProcessStartInfo(articleUrl) With {.UseShellExecute = True}
-                    Dim p = Process.Start(psi)
-                    Threading.Thread.Sleep(1000)
-                    If p IsNot Nothing AndAlso Not p.HasExited Then p.Kill()
-                    WriteLog("ONGLET FERME : " & articleUrl)
-                End If
+            If chkVisualiserArticles.Checked Then
+                webArticle.Visible = True
+                webArticle.Source = New Uri(articleUrl)
 
-            Catch
-                DeadLinks += 1
-                WriteLog("LIEN MORT : " & articleUrl)
-            End Try
+                Await Task.Delay(1000)
 
-            Threading.Thread.Sleep(rnd.Next(3000, 9000))
+                webArticle.Source = New Uri("about:blank")
+                webArticle.Visible = False
+            End If
+
+            Await Task.Delay(rnd.Next(3000, 9000))
         Next
 
         StopTimerInternal()
         WriteLog("FIN")
     End Sub
 
-    ' ================= STOP =================
+    ' ========== STOP ==========
     Private Sub StopProcess(sender As Object, e As EventArgs)
         Running = False
         StopTimerInternal()
@@ -210,45 +237,7 @@ Public Class Form1
         End If
     End Sub
 
-    ' ================= GENERATION HTML =================
-    Private Async Function GenerateHtmlPagesAsync() As Task
-
-        If web Is Nothing Then
-            web = New WebView2()
-            web.Visible = False
-            Controls.Add(web)
-            Await web.EnsureCoreWebView2Async()
-        End If
-
-        If chkSaveHtml.Checked Then
-            Directory.CreateDirectory(PagesHtmlDirectory)
-        End If
-
-        For page = 1 To 20
-            Dim url =
-                $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}&sort_order=date_desc#items"
-
-            web.Source = New Uri(url)
-            Await Task.Delay(6000)
-
-            Dim html =
-                Await web.ExecuteScriptAsync("document.documentElement.outerHTML")
-
-            html = html.Replace("\""", """")
-
-            PagesHtml(page) = html
-
-            If chkSaveHtml.Checked Then
-                Dim filePath =
-                    System.IO.Path.Combine(PagesHtmlDirectory, $"page{page}.html")
-                File.WriteAllText(filePath, html)
-            End If
-
-            If html.Contains("Aucun article en vente pour le moment") Then Exit For
-        Next
-    End Function
-
-    ' ================= UI UPDATE =================
+    ' ========== UI UPDATE ==========
     Private Sub UpdateUI(sender As Object, e As EventArgs)
 
         lblClicks.Text = "Clics cumulés : " & TotalClicks
