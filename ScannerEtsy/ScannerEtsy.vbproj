@@ -6,11 +6,16 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
 
-    <!-- Point d’entrée VB.NET -->
+    <!-- Point d'entrée -->
     <StartupObject>MabrocAnges.Program</StartupObject>
 
     <AssemblyName>MabrocAngesScanner</AssemblyName>
     <RootNamespace>MabrocAnges</RootNamespace>
   </PropertyGroup>
+
+  <!-- ✅ DÉPENDANCE WEBVIEW2 OBLIGATOIRE -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2420.47" />
+  </ItemGroup>
 
 </Project>
