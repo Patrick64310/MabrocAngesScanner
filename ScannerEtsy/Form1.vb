@@ -3,6 +3,8 @@ Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
 Imports System.Diagnostics
 Imports System.IO
+Imports Microsoft.Web.WebView2.WinForms
+Imports Microsoft.Web.WebView2.Core
 
 Public Class Form1
     Inherits Form
@@ -14,7 +16,6 @@ Public Class Form1
     ' ================= ETAT =================
     Private Running As Boolean = False
     Private LoopRunning As Boolean = False
-
     Private TotalClicks As Integer = 0
     Private DeadLinks As Integer = 0
     Private ArticlesFound As Integer = 0
@@ -24,12 +25,8 @@ Public Class Form1
     Private uiTimer As Timer
 
     ' ================= UI =================
-    Private lblClicks As Label
-    Private lblArticles As Label
-    Private lblDead As Label
-    Private lblTime As Label
-    Private btnStart As Button
-    Private btnStop As Button
+    Private lblClicks, lblArticles, lblDead, lblTime As Label
+    Private btnStart, btnStop, btnGenerate As Button
 
     ' ================= LOG =================
     Private LogPath As String =
@@ -44,11 +41,14 @@ Public Class Form1
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
+    ' ================= WEBVIEW =================
+    Private web As WebView2
+
     Public Sub New()
 
-        Me.Text = "Mabroc'Anges Scanner"
-        Me.Width = 650
-        Me.Height = 320
+        Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict)"
+        Me.Width = 720
+        Me.Height = 380
         Me.StartPosition = FormStartPosition.CenterScreen
 
         InitializeUI()
@@ -56,7 +56,7 @@ Public Class Form1
         uiTimer = New Timer()
         uiTimer.Interval = 1000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
-        ' ❌ le timer ne démarre pas ici
+        ' ❌ Timer inactif tant que START pas pressé
 
         WriteLog("APPLICATION LANCÉE")
     End Sub
@@ -64,18 +64,20 @@ Public Class Form1
     ' ================= UI =================
     Private Sub InitializeUI()
 
-        lblClicks = New Label() With {.Left = 20, .Top = 30, .Width = 600}
-        lblArticles = New Label() With {.Left = 20, .Top = 60, .Width = 600}
-        lblDead = New Label() With {.Left = 20, .Top = 90, .Width = 600}
-        lblTime = New Label() With {.Left = 20, .Top = 120, .Width = 600}
+        lblClicks = New Label() With {.Left = 20, .Top = 30, .Width = 680}
+        lblArticles = New Label() With {.Left = 20, .Top = 60, .Width = 680}
+        lblDead = New Label() With {.Left = 20, .Top = 90, .Width = 680}
+        lblTime = New Label() With {.Left = 20, .Top = 120, .Width = 680}
 
-        btnStart = New Button() With {.Text = "START", .Left = 20, .Top = 200, .Width = 120}
-        btnStop = New Button() With {.Text = "STOP", .Left = 160, .Top = 200, .Width = 120}
+        btnGenerate = New Button() With {.Text = "GÉNÉRER HTML", .Left = 20, .Top = 200, .Width = 160}
+        btnStart = New Button() With {.Text = "START", .Left = 200, .Top = 200, .Width = 120}
+        btnStop = New Button() With {.Text = "STOP", .Left = 340, .Top = 200, .Width = 120}
 
+        AddHandler btnGenerate.Click, AddressOf GenerateHtmlPages
         AddHandler btnStart.Click, AddressOf StartProcess
         AddHandler btnStop.Click, AddressOf StopProcess
 
-        Controls.AddRange({lblClicks, lblArticles, lblDead, lblTime, btnStart, btnStop})
+        Controls.AddRange({lblClicks, lblArticles, lblDead, lblTime, btnGenerate, btnStart, btnStop})
 
         UpdateUI(Nothing, Nothing)
     End Sub
@@ -84,8 +86,53 @@ Public Class Form1
     Private Sub WriteLog(msg As String)
         File.AppendAllText(
             LogPath,
-            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}" & Environment.NewLine
-        )
+            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}" & Environment.NewLine)
+    End Sub
+
+    ' ================= GÉNÉRATION HTML =================
+    Private Async Sub GenerateHtmlPages(sender As Object, e As EventArgs)
+
+        Directory.CreateDirectory(PagesHtmlDirectory)
+
+        If web Is Nothing Then
+            web = New WebView2()
+            web.Visible = False
+            Controls.Add(web)
+            Await web.EnsureCoreWebView2Async()
+        End If
+
+        WriteLog("DEBUT GENERATION HTML")
+
+        For page As Integer = 1 To 20
+
+            Dim url =
+                $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}&sort_order=date_desc#items"
+
+            WriteLog("NAVIGATION WEBVIEW : " & url)
+            web.Source = New Uri(url)
+
+            Await Task.Delay(6000) ' temps JS+Cloudflare
+
+            Dim html As String =
+                Await web.ExecuteScriptAsync("document.documentElement.outerHTML")
+
+            html = html.Replace("\""", """")
+
+            If html.Contains("Aucun article en vente pour le moment") Then
+                WriteLog("ARRET GENERATION HTML : Aucun article")
+                Exit For
+            End If
+
+            Dim filePath =
+                Path.Combine(PagesHtmlDirectory, $"page{page}.html")
+
+            File.WriteAllText(filePath, html)
+            WriteLog("HTML SAUVEGARDE : " & filePath)
+        Next
+
+        WriteLog("FIN GENERATION HTML")
+        MessageBox.Show("Génération des pages HTML terminée.", "OK", MessageBoxButtons.OK)
+
     End Sub
 
     ' ================= START =================
@@ -94,8 +141,6 @@ Public Class Form1
         If Running Then Exit Sub
 
         Running = True
-        LoopRunning = False
-
         PagesUrl.Clear()
         ArticlesUrl.Clear()
         TotalClicks = 0
@@ -104,43 +149,32 @@ Public Class Form1
 
         WriteLog("START")
 
-        ' =====================================================
-        ' ETAPE 1 — PAGES 1 À 20
-        ' =====================================================
+        ' ===== ETAPE 1 — PAGES 1 → 20 =====
         For PageNumber As Integer = 1 To 20
 
             Dim pageUrl =
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={PageNumber}&sort_order=date_desc#items"
 
             WriteLog("PAGE PARCOURUE : " & pageUrl)
-
-            Dim html As String = LoadPageHtml(PageNumber)
-
-            WriteLog("LONGUEUR HTML PAGE " & PageNumber & " : " & html.Length)
+            Dim html = LoadPageHtml(PageNumber)
 
             If html.Contains("Aucun article en vente pour le moment") Then
-                WriteLog("ARRET BOUCLE PAGES : Aucun article en vente pour le moment")
+                WriteLog("ARRET BOUCLE PAGES")
                 Exit For
             End If
 
             PagesUrl.Add(pageUrl)
-
         Next
 
-        ' =====================================================
-        ' ETAPE 2 — EXTRACTION DES ARTICLES
-        ' =====================================================
+        ' ===== ETAPE 2 — EXTRACTION ARTICLES =====
         For i As Integer = 0 To PagesUrl.Count - 1
-
-            Dim html As String = LoadPageHtml(i + 1)
-
+            Dim html = LoadPageHtml(i + 1)
             For Each m As Match In ListingRegex.Matches(html)
                 If Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
                     WriteLog("ARTICLE TROUVE : " & m.Value)
                 End If
             Next
-
         Next
 
         ArticlesFound = ArticlesUrl.Count
@@ -152,9 +186,7 @@ Public Class Form1
             Exit Sub
         End If
 
-        ' =====================================================
-        ' ETAPE 3 — NAVIGATION ARTICLES
-        ' =====================================================
+        ' ===== ETAPE 3 — NAVIGATION ARTICLES =====
         LoopRunning = True
         LoopStartTime = DateTime.Now
         uiTimer.Start()
@@ -163,7 +195,6 @@ Public Class Form1
         Dim rnd As New Random()
 
         For Each articleUrl In ArticlesUrl
-
             If Not Running Then Exit For
 
             Try
@@ -190,7 +221,6 @@ Public Class Form1
         WriteLog("STOP")
     End Sub
 
-    ' ================= TIMER STOP =================
     Private Sub StopTimerInternal()
         If LoopRunning Then
             uiTimer.Stop()
@@ -201,18 +231,14 @@ Public Class Form1
 
     ' ================= CHARGEMENT HTML =================
     Private Function LoadPageHtml(pageNumber As Integer) As String
-
         Dim filePath =
             Path.Combine(PagesHtmlDirectory, $"page{pageNumber}.html")
 
         If File.Exists(filePath) Then
-            WriteLog("HTML CHARGE : " & filePath)
             Return File.ReadAllText(filePath)
-        Else
-            WriteLog("HTML MANQUANT : " & filePath)
-            Return ""
         End If
 
+        Return ""
     End Function
 
     ' ================= UI UPDATE =================
@@ -228,7 +254,6 @@ Public Class Form1
         Else
             lblTime.Text = "Temps activité : 00:00:00"
         End If
-
     End Sub
 
 End Class
