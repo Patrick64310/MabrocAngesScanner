@@ -20,11 +20,7 @@ jobs:
     - name: Publish self-contained EXE
       working-directory: ScannerEtsy
       run: |
-        dotnet publish -c Release `
-          -r win-x64 `
-          --self-contained true `
-          /p:PublishSingleFile=true `
-          /p:IncludeNativeLibrariesForSelfExtract=true
+        dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
 
 
