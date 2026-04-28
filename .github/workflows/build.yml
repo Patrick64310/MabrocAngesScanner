@@ -17,12 +17,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build
+      - name: Publish Self‑Contained EXE
         working-directory: ScannerEtsy
-        run: dotnet build -c Release
+        run: |
+          dotnet publish -c Release -r win-x64 ^
+            --self-contained true ^
+            /p:PublishSingleFile=true ^
+            /p:IncludeNativeLibrariesForSelfExtract=true ^
+            /p:EnableCompressionInSingleFile=true
 
-      - name: Publish EXE
+      - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
           name: MabrocAngesScanner
-          path: ScannerEtsy/bin/Release/**/*.exe
+          path: ScannerEtsy/bin/Release/net8.0-windows/win-x64/publish/*.exe
