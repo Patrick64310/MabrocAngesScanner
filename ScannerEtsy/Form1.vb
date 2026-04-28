@@ -9,8 +9,11 @@ Imports Microsoft.Web.WebView2.Core
 Public Class Form1
     Inherits Form
 
-    ' ================= MÉMOIRE =================
+    ' ================= HTML EN MÉMOIRE =================
+    ' Clé = numéro de page (1..20), Valeur = HTML complet
     Private PagesHtml As New Dictionary(Of Integer, String)
+
+    ' ================= LISTES MÉTIER =================
     Private PagesUrl As New List(Of String)
     Private ArticlesUrl As New List(Of String)
 
@@ -27,19 +30,23 @@ Public Class Form1
     Private uiTimer As Timer
 
     ' ================= UI =================
-    Private lblClicks, lblArticles, lblDead, lblTime As Label
-    Private btnStart, btnStop As Button
+    Private lblClicks As Label
+    Private lblArticles As Label
+    Private lblDead As Label
+    Private lblTime As Label
+    Private btnStart As Button
+    Private btnStop As Button
     Private chkSaveHtml As CheckBox
 
     ' ================= LOG =================
     Private LogPath As String =
-        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
+        System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
 
-    ' ================= OPTION HTML =================
+    ' ================= OPTION FICHIERS HTML =================
     Private PagesHtmlDirectory As String =
-        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pages_html")
+        System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pages_html")
 
-    ' ================= REGEX EXCEL =================
+    ' ================= REGEX (IDENTIQUE EXCEL) =================
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
@@ -48,9 +55,8 @@ Public Class Form1
     Private web As WebView2
 
     Public Sub New()
-
         Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict • Mémoire)"
-        Me.Width = 780
+        Me.Width = 820
         Me.Height = 360
         Me.StartPosition = FormStartPosition.CenterScreen
 
@@ -59,6 +65,7 @@ Public Class Form1
         uiTimer = New Timer()
         uiTimer.Interval = 1000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
+        ' Le timer ne démarre JAMAIS ici
 
         WriteLog("APPLICATION LANCÉE")
     End Sub
@@ -66,20 +73,20 @@ Public Class Form1
     ' ================= UI =================
     Private Sub InitializeUI()
 
-        lblClicks = New Label() With {.Left = 20, .Top = 30, .Width = 720}
-        lblArticles = New Label() With {.Left = 20, .Top = 60, .Width = 720}
-        lblDead = New Label() With {.Left = 20, .Top = 90, .Width = 720}
-        lblTime = New Label() With {.Left = 20, .Top = 120, .Width = 720}
+        lblClicks = New Label() With {.Left = 20, .Top = 30, .Width = 760}
+        lblArticles = New Label() With {.Left = 20, .Top = 60, .Width = 760}
+        lblDead = New Label() With {.Left = 20, .Top = 90, .Width = 760}
+        lblTime = New Label() With {.Left = 20, .Top = 120, .Width = 760}
 
         chkSaveHtml = New CheckBox() With {
             .Text = "Sauvegarder HTML sur disque (debug / audit)",
             .Left = 20,
             .Top = 160,
-            .Width = 350
+            .Width = 380
         }
 
-        btnStart = New Button() With {.Text = "START", .Left = 420, .Top = 155, .Width = 120}
-        btnStop = New Button() With {.Text = "STOP", .Left = 560, .Top = 155, .Width = 120}
+        btnStart = New Button() With {.Text = "START", .Left = 460, .Top = 155, .Width = 140}
+        btnStop = New Button() With {.Text = "STOP", .Left = 620, .Top = 155, .Width = 140}
 
         AddHandler btnStart.Click, AddressOf StartProcessAsync
         AddHandler btnStop.Click, AddressOf StopProcess
@@ -100,36 +107,36 @@ Public Class Form1
         )
     End Sub
 
-    ' ================= START =================
+    ' ================= START (ASYNC) =================
     Private Async Sub StartProcessAsync(sender As Object, e As EventArgs)
 
         If Running Then Exit Sub
         Running = True
 
+        ' Reset état
         PagesHtml.Clear()
         PagesUrl.Clear()
         ArticlesUrl.Clear()
-
         TotalClicks = 0
         DeadLinks = 0
         ArticlesFound = 0
 
         WriteLog("START")
 
-        ' ========= ÉTAPE 0 — GÉNÉRATION HTML EN MÉMOIRE =========
+        ' ===== ÉTAPE 0 : GÉNÉRATION HTML EN MÉMOIRE =====
         Await GenerateHtmlPagesAsync()
 
-        ' ========= ÉTAPE 1 — CONSTRUCTION DES PAGES =========
-        For page = 1 To 20
+        ' ===== ÉTAPE 1 : BOUCLE DES PAGES (1 → 20) =====
+        For page As Integer = 1 To 20
+
+            If Not PagesHtml.ContainsKey(page) Then Exit For
 
             Dim pageUrl =
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}&sort_order=date_desc#items"
 
             WriteLog("PAGE PARCOURUE : " & pageUrl)
 
-            If Not PagesHtml.ContainsKey(page) Then Continue For
-
-            Dim html = PagesHtml(page)
+            Dim html As String = PagesHtml(page)
 
             If html.Contains("Aucun article en vente pour le moment") Then
                 WriteLog("ARRET BOUCLE PAGES : Aucun article")
@@ -139,9 +146,8 @@ Public Class Form1
             PagesUrl.Add(pageUrl)
         Next
 
-        ' ========= ÉTAPE 2 — EXTRACTION DES ARTICLES =========
+        ' ===== ÉTAPE 2 : EXTRACTION DES ARTICLES =====
         For Each kvp In PagesHtml
-
             For Each m As Match In ListingRegex.Matches(kvp.Value)
                 If Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
@@ -159,7 +165,7 @@ Public Class Form1
             Exit Sub
         End If
 
-        ' ========= ÉTAPE 3 — NAVIGATION ARTICLES =========
+        ' ===== ÉTAPE 3 : NAVIGATION DES ARTICLES =====
         LoopRunning = True
         LoopStartTime = DateTime.Now
         uiTimer.Start()
@@ -218,7 +224,7 @@ Public Class Form1
 
         WriteLog("DEBUT GENERATION HTML (MEMOIRE)")
 
-        For page = 1 To 20
+        For page As Integer = 1 To 20
 
             Dim url =
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}&sort_order=date_desc#items"
@@ -228,7 +234,7 @@ Public Class Form1
 
             Await Task.Delay(6000)
 
-            Dim html =
+            Dim html As String =
                 Await web.ExecuteScriptAsync("document.documentElement.outerHTML")
 
             html = html.Replace("\""", """")
@@ -237,9 +243,11 @@ Public Class Form1
             WriteLog("HTML CHARGE EN MEMOIRE : page " & page)
 
             If chkSaveHtml.Checked Then
-                Dim path = Path.Combine(PagesHtmlDirectory, $"page{page}.html")
-                File.WriteAllText(path, html)
-                WriteLog("HTML SAUVEGARDE SUR DISQUE : " & path)
+                Dim filePath As String =
+                    System.IO.Path.Combine(PagesHtmlDirectory, $"page{page}.html")
+
+                File.WriteAllText(filePath, html)
+                WriteLog("HTML SAUVEGARDE SUR DISQUE : " & filePath)
             End If
 
             If html.Contains("Aucun article en vente pour le moment") Then
