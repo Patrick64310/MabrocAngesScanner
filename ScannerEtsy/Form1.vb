@@ -2,6 +2,7 @@
 Imports System.Windows.Forms
 Imports System.Diagnostics
 Imports System.Drawing
+Imports System.IO
 
 Public Class Form1
     Inherits Form
@@ -14,6 +15,10 @@ Public Class Form1
 
     ' ===== Contrôle =====
     Private Running As Boolean = False
+
+    ' ===== Log =====
+    Private LogFilePath As String =
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
 
     ' ===== UI =====
     Private lblTotal As Label
@@ -38,8 +43,11 @@ Public Class Form1
         uiTimer.Interval = 1000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
         uiTimer.Start()
+
+        WriteLog("APPLICATION LANCÉE")
     End Sub
 
+    ' ===== UI =====
     Private Sub InitializeUI()
 
         lblTotal = New Label() With {.Left = 20, .Top = 30, .Width = 400}
@@ -55,19 +63,39 @@ Public Class Form1
         AddHandler btnStop.Click, AddressOf StopSimulation
         AddHandler btnReset.Click, AddressOf ResetAll
 
-        Me.Controls.AddRange({lblTotal, lblFound, lblDead, lblTime, btnStart, btnStop, btnReset})
+        Me.Controls.AddRange(
+            {lblTotal, lblFound, lblDead, lblTime, btnStart, btnStop, btnReset})
+
         UpdateUI(Nothing, Nothing)
+    End Sub
+
+    ' ===== LOG =====
+    Private Sub WriteLog(message As String)
+        Try
+            Dim line As String =
+                "[" & DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") & "] " & message
+            File.AppendAllText(LogFilePath, line & Environment.NewLine)
+        Catch
+            ' Ne jamais bloquer l'application à cause du log
+        End Try
     End Sub
 
     ' ===== Simulation Excel-like =====
     Private Sub StartSimulation(sender As Object, e As EventArgs)
+        If Running Then Exit Sub
+
         Running = True
-        ArticlesFound = 42   ' valeur simulée stable
+        ArticlesFound = 42   ' valeur simulée
+        WriteLog("START")
+        WriteLog("PAGE PARCOURUE : page=1")
+        WriteLog("ARTICLES TROUVÉS : " & ArticlesFound)
+
         SimulateLoop()
     End Sub
 
     Private Sub StopSimulation(sender As Object, e As EventArgs)
         Running = False
+        WriteLog("STOP")
     End Sub
 
     Private Sub ResetAll(sender As Object, e As EventArgs)
@@ -76,22 +104,31 @@ Public Class Form1
         DeadLinks = 0
         ArticlesFound = 0
         ElapsedStart = DateTime.Now
+        WriteLog("RESET")
     End Sub
 
+    ' ===== Boucle simulée =====
     Private Sub SimulateLoop()
         Dim t As New Threading.Thread(
             Sub()
                 While Running
                     TotalClicks += 1
-                    If TotalClicks Mod 7 = 0 Then DeadLinks += 1
+                    WriteLog("CLIC URL simulé")
+
+                    If TotalClicks Mod 7 = 0 Then
+                        DeadLinks += 1
+                        WriteLog("LIEN MORT simulé")
+                    End If
+
                     Threading.Thread.Sleep(1200)
                 End While
-            End Sub)
+            End Sub
+        )
         t.IsBackground = True
         t.Start()
     End Sub
 
-    ' ===== UI Refresh =====
+    ' ===== Refresh UI =====
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblTotal.Text = "Cumul Total clics : " & TotalClicks
         lblFound.Text = "Articles trouvés : " & ArticlesFound
