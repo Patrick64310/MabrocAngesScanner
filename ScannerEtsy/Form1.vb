@@ -20,6 +20,10 @@ Public Class Form1
     Private LogFilePath As String =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
 
+    ' ===== Simulation URLs =====
+    Private SimulatedUrls As List(Of String)
+    Private UrlIndex As Integer = 0
+
     ' ===== UI =====
     Private lblTotal As Label
     Private lblFound As Label
@@ -31,7 +35,7 @@ Public Class Form1
     Private uiTimer As Timer
 
     Public Sub New()
-        Me.Text = "Mabroc'Anges – Scanner V6 (Stable)"
+        Me.Text = "Mabroc'Anges – Scanner V6 (Stable + Logs)"
         Me.Width = 520
         Me.Height = 300
         Me.StartPosition = FormStartPosition.CenterScreen
@@ -45,6 +49,15 @@ Public Class Form1
         uiTimer.Start()
 
         WriteLog("APPLICATION LANCÉE")
+
+        ' URLs simulées réalistes
+        SimulatedUrls = New List(Of String) From {
+            "https://www.etsy.com/fr/listing/100000001",
+            "https://www.etsy.com/fr/listing/100000002",
+            "https://www.etsy.com/fr/listing/100000003",
+            "https://www.etsy.com/fr/listing/100000004",
+            "https://www.etsy.com/fr/listing/100000005"
+        }
     End Sub
 
     ' ===== UI =====
@@ -76,7 +89,6 @@ Public Class Form1
                 "[" & DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") & "] " & message
             File.AppendAllText(LogFilePath, line & Environment.NewLine)
         Catch
-            ' Ne jamais bloquer l'application à cause du log
         End Try
     End Sub
 
@@ -85,9 +97,11 @@ Public Class Form1
         If Running Then Exit Sub
 
         Running = True
-        ArticlesFound = 42   ' valeur simulée
+        ArticlesFound = SimulatedUrls.Count
+        UrlIndex = 0
+
         WriteLog("START")
-        WriteLog("PAGE PARCOURUE : page=1")
+        WriteLog("PAGE PARCOURUE : https://www.etsy.com/fr/shop/mabrocanges?page=1")
         WriteLog("ARTICLES TROUVÉS : " & ArticlesFound)
 
         SimulateLoop()
@@ -103,6 +117,7 @@ Public Class Form1
         TotalClicks = 0
         DeadLinks = 0
         ArticlesFound = 0
+        UrlIndex = 0
         ElapsedStart = DateTime.Now
         WriteLog("RESET")
     End Sub
@@ -111,24 +126,27 @@ Public Class Form1
     Private Sub SimulateLoop()
         Dim t As New Threading.Thread(
             Sub()
-                While Running
-                    TotalClicks += 1
-                    WriteLog("CLIC URL simulé")
+                While Running AndAlso UrlIndex < SimulatedUrls.Count
+                    Dim url = SimulatedUrls(UrlIndex)
+                    UrlIndex += 1
 
-                    If TotalClicks Mod 7 = 0 Then
+                    TotalClicks += 1
+                    WriteLog("CLIC URL : " & url)
+
+                    ' Simuler un lien mort tous les 3
+                    If TotalClicks Mod 3 = 0 Then
                         DeadLinks += 1
-                        WriteLog("LIEN MORT simulé")
+                        WriteLog("LIEN MORT : " & url)
                     End If
 
-                    Threading.Thread.Sleep(1200)
+                    Threading.Thread.Sleep(1500)
                 End While
-            End Sub
-        )
+            End Sub)
         t.IsBackground = True
         t.Start()
     End Sub
 
-    ' ===== Refresh UI =====
+    ' ===== UI Refresh =====
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblTotal.Text = "Cumul Total clics : " & TotalClicks
         lblFound.Text = "Articles trouvés : " & ArticlesFound
@@ -138,4 +156,3 @@ Public Class Form1
     End Sub
 
 End Class
-
