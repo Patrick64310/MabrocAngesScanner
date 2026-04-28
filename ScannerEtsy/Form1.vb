@@ -1,4 +1,5 @@
 
+Imports System
 Imports System.Windows.Forms
 Imports Microsoft.Web.WebView2.WinForms
 
@@ -15,13 +16,11 @@ Public Class Form1
         web = New WebView2()
         web.Dock = DockStyle.Fill
         Me.Controls.Add(web)
-
-        AddHandler Me.Load, AddressOf OnLoad
     End Sub
 
-    
-Private Sub Form1_Load(sender As Object, e As EventArgs) _
-    Handles MyBase.Load
+    ' ✅ Chargement asynchrone CORRECT
+    Private Async Sub Form1_Load(sender As Object, e As EventArgs) _
+        Handles MyBase.Load
 
         Await web.EnsureCoreWebView2Async()
         web.Source = New Uri("https://www.etsy.com")
