@@ -11,7 +11,7 @@ Public Class Form1
     Private PagesUrl As New List(Of String)
     Private ArticlesUrl As New List(Of String)
 
-    ' ================= ÉTAT =================
+    ' ================= ETAT =================
     Private Running As Boolean = False
     Private LoopRunning As Boolean = False
 
@@ -35,6 +35,10 @@ Public Class Form1
     Private LogPath As String =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scanner_log.txt")
 
+    ' ================= HTML =================
+    Private PagesHtmlDirectory As String =
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pages_html")
+
     ' ================= REGEX =================
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
@@ -42,7 +46,7 @@ Public Class Form1
 
     Public Sub New()
 
-        Me.Text = "Mabroc'Anges – Scanner V6 (Excel strict)"
+        Me.Text = "Mabroc'Anges Scanner"
         Me.Width = 650
         Me.Height = 320
         Me.StartPosition = FormStartPosition.CenterScreen
@@ -52,7 +56,7 @@ Public Class Form1
         uiTimer = New Timer()
         uiTimer.Interval = 1000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
-        ' ⚠️ Le timer NE démarre PAS ici
+        ' ❌ le timer ne démarre pas ici
 
         WriteLog("APPLICATION LANCÉE")
     End Sub
@@ -101,7 +105,7 @@ Public Class Form1
         WriteLog("START")
 
         ' =====================================================
-        ' ETAPE 1 — BOUCLE PAGES 1 À 20 (STRICT EXCEL)
+        ' ETAPE 1 — PAGES 1 À 20
         ' =====================================================
         For PageNumber As Integer = 1 To 20
 
@@ -111,6 +115,8 @@ Public Class Form1
             WriteLog("PAGE PARCOURUE : " & pageUrl)
 
             Dim html As String = LoadPageHtml(PageNumber)
+
+            WriteLog("LONGUEUR HTML PAGE " & PageNumber & " : " & html.Length)
 
             If html.Contains("Aucun article en vente pour le moment") Then
                 WriteLog("ARRET BOUCLE PAGES : Aucun article en vente pour le moment")
@@ -129,8 +135,10 @@ Public Class Form1
             Dim html As String = LoadPageHtml(i + 1)
 
             For Each m As Match In ListingRegex.Matches(html)
-                ArticlesUrl.Add(m.Value)
-                WriteLog("ARTICLE TROUVE : " & m.Value)
+                If Not ArticlesUrl.Contains(m.Value) Then
+                    ArticlesUrl.Add(m.Value)
+                    WriteLog("ARTICLE TROUVE : " & m.Value)
+                End If
             Next
 
         Next
@@ -138,8 +146,14 @@ Public Class Form1
         ArticlesFound = ArticlesUrl.Count
         WriteLog("ARTICLES TROUVES TOTAL : " & ArticlesFound)
 
+        If ArticlesFound = 0 Then
+            WriteLog("AUCUN ARTICLE — FIN")
+            Running = False
+            Exit Sub
+        End If
+
         ' =====================================================
-        ' ETAPE 3 — NAVIGATION DES ARTICLES (TIMER ACTIF)
+        ' ETAPE 3 — NAVIGATION ARTICLES
         ' =====================================================
         LoopRunning = True
         LoopStartTime = DateTime.Now
@@ -185,18 +199,20 @@ Public Class Form1
         End If
     End Sub
 
-    ' ================= SOURCE HTML =================
-    ' ATTEND des fichiers page1.html, page2.html, ... dans le dossier de l'EXE
+    ' ================= CHARGEMENT HTML =================
     Private Function LoadPageHtml(pageNumber As Integer) As String
 
         Dim filePath =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"page{pageNumber}.html")
+            Path.Combine(PagesHtmlDirectory, $"page{pageNumber}.html")
 
         If File.Exists(filePath) Then
+            WriteLog("HTML CHARGE : " & filePath)
             Return File.ReadAllText(filePath)
+        Else
+            WriteLog("HTML MANQUANT : " & filePath)
+            Return ""
         End If
 
-        Return ""
     End Function
 
     ' ================= UI UPDATE =================
