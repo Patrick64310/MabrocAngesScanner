@@ -183,8 +183,8 @@ Public Class Form1
             .ColumnCount = 2,
             .Padding = New Padding(10)
         }
-        bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70))
-        bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30))
+        bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
+        bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
 
         ' --- Compteurs (gauche)
         Dim counters As New FlowLayoutPanel With {
@@ -195,7 +195,7 @@ Public Class Form1
         Dim fnt As New Font("Arial", 14, FontStyle.Bold)
 
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
-        lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt}
+        lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red}
         lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt}
@@ -261,7 +261,7 @@ Public Class Form1
         btnStart.Visible = False
         btnStop.Visible = True
         statusTimer.Start()
-
+        lblArticleTitle.Text = ""
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -293,7 +293,7 @@ Public Class Form1
 
         While Running
             Dim url = ArticlesUrl(i)
-            lblCurrentArticle.Text = "Article : " & url
+            lblCurrentArticle.Text = "Lien de l'article : " & url
             lblProgress.Text = $"Article {i + 1} / {ArticlesFound} (tour n°{LoopCount})"
             TotalClicks += 1
 
@@ -327,6 +327,8 @@ Public Class Form1
         pnlStatus.BackColor = Color.Red
         uiTimer.Stop()
         picThumbnail.Image = Nothing
+        lblArticleTitle.Text = ""   
+        lblCurrentArticle.Text = ""                                                                                                
     End Sub
 
     ' ================= UI TIMER =================
