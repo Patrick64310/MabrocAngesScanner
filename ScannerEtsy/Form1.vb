@@ -1,7 +1,12 @@
 
 Imports System.Windows.Forms
-Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularExpressions
- 
+Imports System.Text.RegularExpressions
+Imports System.Drawing
+Imports Microsoft.Web.WebView2.WinForms
+
+Public Class Form1
+    Inherits Form
+
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
 
@@ -52,8 +57,6 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
         Me.BackColor = Color.AliceBlue
 
         InitializeUI()
-
-        ' ✅ APPLIQUER EXPLICITEMENT L’ICÔNE À LA FENÊTRE
         ApplyWindowIcon()
 
         uiTimer = New Timer() With {.Interval = 1000}
@@ -63,25 +66,23 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
         AddHandler statusTimer.Tick, AddressOf AnimateStatus
     End Sub
 
-    ' ================= ICÔNE FENÊTRE =================
+    ' ================= ICÔNE DE LA FENÊTRE =================
     Private Sub ApplyWindowIcon()
         Try
             Dim asm = GetType(Form1).Assembly
             For Each resName In asm.GetManifestResourceNames()
                 If resName.EndsWith(".etsy.ico", StringComparison.OrdinalIgnoreCase) _
                    OrElse resName.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
-
                     Using s = asm.GetManifestResourceStream(resName)
                         If s IsNot Nothing Then
                             Me.Icon = New Icon(s)
                             Exit For
                         End If
                     End Using
-
                 End If
             Next
         Catch
-            ' Sécurité : ne rien faire si l’icône n’est pas trouvée
+            ' Sécurité : ignorer si introuvable
         End Try
     End Sub
 
@@ -98,8 +99,8 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
 
         root.RowStyles.Add(New RowStyle(SizeType.AutoSize))        ' Header
         root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))     ' Separator
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))   ' Images
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))    ' Bottom
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))   ' Images (fixe)
+        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))    ' Bas
 
         ' ===== HEADER =====
         lblCurrentArticle = New Label With {
@@ -125,7 +126,6 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
             .FlowDirection = FlowDirection.TopDown,
             .WrapContents = False
         }
-
         header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
         root.Controls.Add(header, 0, 0)
@@ -136,13 +136,12 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
             .BackColor = Color.DarkGray
         }, 0, 1)
 
-        ' ===== IMAGES =====
+        ' ===== IMAGES (MINIATURE | LOGO) =====
         Dim imagesRow As New TableLayoutPanel With {
             .ColumnCount = 2,
             .Dock = DockStyle.Fill,
             .Padding = New Padding(10)
         }
-
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
 
@@ -162,7 +161,7 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
             .Anchor = AnchorStyles.None
         }
 
-        ' Logo embarqué (chargement robuste)
+        ' Chargement robuste du logo embarqué
         For Each r In GetType(Form1).Assembly.GetManifestResourceNames()
             If r.EndsWith(".logo.png", StringComparison.OrdinalIgnoreCase) Then
                 Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
@@ -176,13 +175,12 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
         imagesRow.Controls.Add(picLogo, 1, 0)
         root.Controls.Add(imagesRow, 0, 2)
 
-        ' ===== BAS : GAUCHE / DROITE =====
+        ' ===== BAS : GAUCHE (COMPTEURS) / DROITE (ACTIONS) =====
         Dim bottomPanel As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 2,
             .Padding = New Padding(10)
         }
-
         bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70))
         bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30))
 
@@ -243,7 +241,7 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
         Me.Controls.Add(webArticle)
     End Sub
 
-    ' ===== ANIMATION VOYANT (FADE VERT) =====
+    ' ===== ANIMATION DU VOYANT (FADE VERT) =====
     Private Sub AnimateStatus(sender As Object, e As EventArgs)
         If Not Running Then Exit Sub
 
@@ -338,9 +336,3 @@ Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularE
     End Sub
 
 End Class
-``
-Imports System.IO
-Imports System.Drawing
-Imports Microsoft.Web.WebView2.WinForms
-
-Public Class Form1
