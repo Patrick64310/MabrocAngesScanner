@@ -44,9 +44,9 @@ Public Class Form1
         RegexOptions.IgnoreCase)
 
     Public Sub New()
-        Me.Text = "Mabroc'Anges – Scanner Etsy"
-        Me.Width = 1000
-        Me.Height = 600
+        Me.Text = "Mabroc'Anges – Scanner Etsy (Final)"
+        Me.Width = 1150
+        Me.Height = 650
         Me.StartPosition = FormStartPosition.CenterScreen
 
         InitializeUI()
@@ -65,40 +65,45 @@ Public Class Form1
             .Padding = New Padding(10)
         }
 
-        root.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 320))
+        root.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 340))
         root.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 130))
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
 
-        ' === URL + Description ===
+        ' ✅ IMPORTANT : AutoSize pour le header
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))     ' Header
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))  ' Separator
+        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100)) ' Content
+
+        ' ===== HEADER (URL + TITRE) =====
         lblCurrentArticle = New Label With {
             .AutoSize = False,
-            .Height = 30,
-            .Dock = DockStyle.Top,
-            .Font = New Font("Arial", 12, FontStyle.Regular),
+            .Height = 32,
+            .Width = 1000,
+            .Font = New Font("Arial", 14, FontStyle.Regular),
             .Text = "Article :"
         }
 
         lblArticleTitle = New Label With {
             .AutoSize = False,
             .Height = 60,
-            .Dock = DockStyle.Top,
-            .Font = New Font("Arial", 12, FontStyle.Regular),
+            .Width = 1000,
+            .Font = New Font("Arial", 14, FontStyle.Regular),
             .Text = "Description :"
         }
 
         Dim header As New FlowLayoutPanel With {
             .Dock = DockStyle.Fill,
-            .FlowDirection = FlowDirection.TopDown
+            .FlowDirection = FlowDirection.TopDown,
+            .AutoSize = True,
+            .WrapContents = False
         }
+
         header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
 
         root.SetColumnSpan(header, 2)
         root.Controls.Add(header, 0, 0)
 
-        ' === Séparateur ===
+        ' ===== SEPARATEUR =====
         Dim separator As New Panel With {
             .Dock = DockStyle.Fill,
             .Height = 2,
@@ -107,7 +112,7 @@ Public Class Form1
         root.SetColumnSpan(separator, 2)
         root.Controls.Add(separator, 0, 1)
 
-        ' === Image ===
+        ' ===== IMAGE (GAUCHE) =====
         Dim imagePanel As New Panel With {
             .Dock = DockStyle.Fill,
             .BackColor = Color.FromArgb(245, 245, 245),
@@ -117,14 +122,14 @@ Public Class Form1
         picThumbnail = New PictureBox With {
             .Width = 300,
             .Height = 300,
-            .Dock = DockStyle.None,
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BorderStyle = BorderStyle.FixedSingle
         }
+
         imagePanel.Controls.Add(picThumbnail)
         root.Controls.Add(imagePanel, 0, 2)
 
-        ' === Zone droite ===
+        ' ===== ZONE DROITE =====
         Dim rightPanel As New FlowLayoutPanel With {
             .Dock = DockStyle.Fill,
             .FlowDirection = FlowDirection.TopDown
@@ -143,11 +148,11 @@ Public Class Form1
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
 
-        lblProgress = New Label With {.AutoSize = False, .Height = 30, .Width = 450, .Font = fnt}
-        lblClicks = New Label With {.AutoSize = False, .Height = 30, .Width = 450, .Font = fnt}
-        lblArticles = New Label With {.AutoSize = False, .Height = 30, .Width = 450, .Font = fnt}
-        lblDead = New Label With {.AutoSize = False, .Height = 30, .Width = 450, .Font = fnt}
-        lblTime = New Label With {.AutoSize = False, .Height = 30, .Width = 450, .Font = fnt}
+        lblProgress = New Label With {.AutoSize = False, .Height = 30, .Width = 500, .Font = fnt}
+        lblClicks = New Label With {.AutoSize = False, .Height = 30, .Width = 500, .Font = fnt}
+        lblArticles = New Label With {.AutoSize = False, .Height = 30, .Width = 500, .Font = fnt}
+        lblDead = New Label With {.AutoSize = False, .Height = 30, .Width = 500, .Font = fnt}
+        lblTime = New Label With {.AutoSize = False, .Height = 30, .Width = 500, .Font = fnt}
 
         rightPanel.Controls.Add(btnStart)
         rightPanel.Controls.Add(btnStop)
@@ -160,6 +165,7 @@ Public Class Form1
         root.Controls.Add(rightPanel, 1, 2)
         Me.Controls.Add(root)
 
+        ' ===== WEBVIEW INVISIBLE =====
         webPages = New WebView2 With {.Visible = False}
         webArticle = New WebView2 With {.Visible = False}
         Me.Controls.Add(webPages)
@@ -178,7 +184,7 @@ Public Class Form1
         Await webPages.EnsureCoreWebView2Async()
         Await webArticle.EnsureCoreWebView2Async()
 
-        ' === Pages boutique ===
+        ' ===== SCAN BOUTIQUE =====
         For page = 1 To 20
             webPages.Source = New Uri(
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}")
@@ -204,8 +210,9 @@ Public Class Form1
         Dim rnd As New Random()
         Dim index As Integer = 0
 
-        ' === Boucle infinie ===
+        ' ===== BOUCLE INFINIE =====
         While Running
+
             Dim url = ArticlesUrl(index)
             lblCurrentArticle.Text = "Article : " & url
             lblProgress.Text = $"Article {index + 1} / {ArticlesFound} (tour n°{LoopCount})"
@@ -226,11 +233,14 @@ Public Class Form1
             Catch
                 DeadLinks += 1
             End Try
- 
-            Await Task.Delay(rnd.Next(2000, 10000))
+
+            Await Task.Delay(rnd.Next(3000, 9000))
 
             index += 1
-            If index >= ArticlesFound Then index = 0 : LoopCount += 1
+            If index >= ArticlesFound Then
+                index = 0
+                LoopCount += 1
+            End If
         End While
     End Sub
 
@@ -250,4 +260,3 @@ Public Class Form1
     End Sub
 
 End Class
-
