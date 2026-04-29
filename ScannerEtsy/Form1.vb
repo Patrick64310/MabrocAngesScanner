@@ -2,6 +2,7 @@
 Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
 Imports System.IO
+Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
 
 Public Class Form1
