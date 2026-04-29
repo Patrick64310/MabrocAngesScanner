@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\logo.png" />
+    <EmbeddedResource Include="Assets\Etsy.ico" />
   </ItemGroup>
 
   <!-- ✅ DÉPENDANCE WEBVIEW2 OBLIGATOIRE -->
