@@ -1,12 +1,6 @@
 
 Imports System.Windows.Forms
-Imports System.Text.RegularExpressions
-Imports System.IO
-Imports System.Drawing
-Imports Microsoft.Web.WebView2.WinForms
-
-Public Class Form1
-    Inherits Form
+Imports System.Text.RegularExpressions Inherits FormImports System.Text.RegularExpressions
 
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
@@ -59,11 +53,36 @@ Public Class Form1
 
         InitializeUI()
 
+        ' ✅ APPLIQUER EXPLICITEMENT L’ICÔNE À LA FENÊTRE
+        ApplyWindowIcon()
+
         uiTimer = New Timer() With {.Interval = 1000}
         AddHandler uiTimer.Tick, AddressOf UpdateUI
 
         statusTimer = New Timer() With {.Interval = 60}
         AddHandler statusTimer.Tick, AddressOf AnimateStatus
+    End Sub
+
+    ' ================= ICÔNE FENÊTRE =================
+    Private Sub ApplyWindowIcon()
+        Try
+            Dim asm = GetType(Form1).Assembly
+            For Each resName In asm.GetManifestResourceNames()
+                If resName.EndsWith(".etsy.ico", StringComparison.OrdinalIgnoreCase) _
+                   OrElse resName.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
+
+                    Using s = asm.GetManifestResourceStream(resName)
+                        If s IsNot Nothing Then
+                            Me.Icon = New Icon(s)
+                            Exit For
+                        End If
+                    End Using
+
+                End If
+            Next
+        Catch
+            ' Sécurité : ne rien faire si l’icône n’est pas trouvée
+        End Try
     End Sub
 
     ' ================= UI =================
@@ -319,3 +338,9 @@ Public Class Form1
     End Sub
 
 End Class
+``
+Imports System.IO
+Imports System.Drawing
+Imports Microsoft.Web.WebView2.WinForms
+
+Public Class Form1
