@@ -9,7 +9,7 @@ Module Program
     <DllImport("shell32.dll", CharSet:=CharSet.Unicode)>
     Private Sub SetCurrentProcessExplicitAppUserModelID(appID As String)
     End Sub
-
+ 
     <STAThread>
     Sub Main()
 
