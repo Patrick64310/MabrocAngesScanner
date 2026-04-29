@@ -8,7 +8,7 @@
     <ApplicationIcon>Assets\Etsy.ico</ApplicationIcon>
 
     <!-- Point d'entrée -->
-    <StartupObject>MabrocAnges.Program</StartupObject>
+    <StartupObject>ScannerEtsy.Program</StartupObject>
 
     <AssemblyName>MabrocAngesScanner</AssemblyName>
     <RootNamespace>ScannerEtsy</RootNamespace>
