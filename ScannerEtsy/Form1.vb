@@ -47,7 +47,7 @@ Public Class Form1
 
     Public Sub New()
         Me.Text = "Mabroc'Anges – Scanner Etsy"
-        Me.Width = 1150
+        Me.Width = 1050
         Me.Height = 700
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
@@ -69,14 +69,13 @@ Public Class Form1
             .Padding = New Padding(10)
         }
 
-        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))      ' Header
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))   ' Separator
-        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))      ' Images
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))  ' Controls
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))       ' Header
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))    ' Separator
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))  ' Images FIXE
+        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))   ' Controls
 
         ' ===== HEADER =====
         lblCurrentArticle = New Label With {
-            .AutoSize = False,
             .Height = 32,
             .Dock = DockStyle.Top,
             .Font = New Font("Arial", 10, FontStyle.Regular),
@@ -84,7 +83,6 @@ Public Class Form1
         }
 
         lblArticleTitle = New Label With {
-            .AutoSize = False,
             .Height = 60,
             .Dock = DockStyle.Top,
             .Font = New Font("Arial", 12, FontStyle.Regular),
@@ -97,9 +95,9 @@ Public Class Form1
             .AutoSize = True,
             .WrapContents = False
         }
+
         header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
-
         root.Controls.Add(header, 0, 0)
 
         ' ===== SEPARATOR =====
@@ -109,7 +107,7 @@ Public Class Form1
             .BackColor = Color.DarkGray
         }, 0, 1)
 
-        ' ===== IMAGES ROW =====
+        ' ===== IMAGES ROW (MINIATURE | LOGO) =====
         Dim imagesRow As New TableLayoutPanel With {
             .ColumnCount = 2,
             .RowCount = 1,
@@ -136,22 +134,28 @@ Public Class Form1
             .Anchor = AnchorStyles.None
         }
 
-        ' Logo embarqué
-        Using s = GetType(Form1).Assembly.GetManifestResourceStream("ScannerEtsy.Assets.logo.png")
-            If s IsNot Nothing Then
-                picLogo.Image = Image.FromStream(s)
+        ' === Chargement ROBUSTE du logo embarqué ===
+        Dim asm = GetType(Form1).Assembly
+        For Each resName In asm.GetManifestResourceNames()
+            If resName.EndsWith(".logo.png", StringComparison.OrdinalIgnoreCase) Then
+                Using s = asm.GetManifestResourceStream(resName)
+                    If s IsNot Nothing Then
+                        picLogo.Image = Image.FromStream(s)
+                        Exit For
+                    End If
+                End Using
             End If
-        End Using
+        Next
 
         imagesRow.Controls.Add(picThumbnail, 0, 0)
         imagesRow.Controls.Add(picLogo, 1, 0)
-
         root.Controls.Add(imagesRow, 0, 2)
 
         ' ===== CONTROLS =====
         Dim controlsPanel As New FlowLayoutPanel With {
             .Dock = DockStyle.Fill,
-            .FlowDirection = FlowDirection.TopDown
+            .FlowDirection = FlowDirection.TopDown,
+            .AutoScroll = True
         }
 
         pnlStatus = New Panel With {
@@ -174,11 +178,11 @@ Public Class Form1
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
 
-        lblProgress = New Label With {.Height = 30, .Width = 500, .Font = fnt}
-        lblClicks = New Label With {.Height = 30, .Width = 500, .Font = fnt}
-        lblArticles = New Label With {.Height = 30, .Width = 500, .Font = fnt}
-        lblDead = New Label With {.Height = 30, .Width = 500, .Font = fnt}
-        lblTime = New Label With {.Height = 30, .Width = 500, .Font = fnt}
+        lblProgress = New Label With {.Height = 30, .Width = 520, .Font = fnt}
+        lblClicks = New Label With {.Height = 30, .Width = 520, .Font = fnt}
+        lblArticles = New Label With {.Height = 30, .Width = 520, .Font = fnt}
+        lblDead = New Label With {.Height = 30, .Width = 520, .Font = fnt}
+        lblTime = New Label With {.Height = 30, .Width = 520, .Font = fnt}
 
         controlsPanel.Controls.Add(pnlStatus)
         controlsPanel.Controls.Add(btnStart)
@@ -190,7 +194,6 @@ Public Class Form1
         controlsPanel.Controls.Add(lblTime)
 
         root.Controls.Add(controlsPanel, 0, 3)
-
         Me.Controls.Add(root)
 
         webPages = New WebView2 With {.Visible = False}
