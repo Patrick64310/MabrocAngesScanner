@@ -44,9 +44,9 @@ Public Class Form1
         RegexOptions.IgnoreCase)
 
     Public Sub New()
-        Me.Text = "Mabroc'Anges – Scanner Etsy (Final)"
-        Me.Width = 1150
-        Me.Height = 650
+        Me.Text = "Mabroc'Anges – Scanner Etsy"
+        Me.Width = 1000
+        Me.Height = 600
         Me.StartPosition = FormStartPosition.CenterScreen
 
         InitializeUI()
@@ -76,7 +76,7 @@ Public Class Form1
             .AutoSize = False,
             .Height = 30,
             .Dock = DockStyle.Top,
-            .Font = New Font("Arial", 14, FontStyle.Regular),
+            .Font = New Font("Arial", 12, FontStyle.Regular),
             .Text = "Article :"
         }
 
@@ -84,7 +84,7 @@ Public Class Form1
             .AutoSize = False,
             .Height = 60,
             .Dock = DockStyle.Top,
-            .Font = New Font("Arial", 14, FontStyle.Regular),
+            .Font = New Font("Arial", 12, FontStyle.Regular),
             .Text = "Description :"
         }
 
@@ -182,7 +182,7 @@ Public Class Form1
         For page = 1 To 20
             webPages.Source = New Uri(
                 $"https://www.etsy.com/fr/shop/mabrocanges?ref=items-pagination&page={page}")
-            Await Task.Delay(6000)
+            Await Task.Delay(3000)
 
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
@@ -227,7 +227,7 @@ Public Class Form1
                 DeadLinks += 1
             End Try
  
-            Await Task.Delay(rnd.Next(3000, 9000))
+            Await Task.Delay(rnd.Next(2000, 10000))
 
             index += 1
             If index >= ArticlesFound Then index = 0 : LoopCount += 1
