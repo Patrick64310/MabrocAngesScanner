@@ -79,7 +79,7 @@ Public Class Form1
             .AutoSize = False,
             .Height = 32,
             .Dock = DockStyle.Top,
-            .Font = New Font("Arial", 12, FontStyle.Regular),
+            .Font = New Font("Arial", 10, FontStyle.Regular),
             .Text = "Article :"
         }
 
@@ -87,7 +87,7 @@ Public Class Form1
             .AutoSize = False,
             .Height = 60,
             .Dock = DockStyle.Top,
-            .Font = New Font("Arial", 13, FontStyle.Regular),
+            .Font = New Font("Arial", 12, FontStyle.Regular),
             .Text = "Description :"
         }
 
