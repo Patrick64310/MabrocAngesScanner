@@ -78,7 +78,7 @@ Public Class Form1
             .AutoSize = False,
             .Height = 32,
             .Width = 1000,
-            .Font = New Font("Arial", 14, FontStyle.Regular),
+            .Font = New Font("Arial", 11, FontStyle.Regular),
             .Text = "Article :"
         }
 
@@ -86,7 +86,7 @@ Public Class Form1
             .AutoSize = False,
             .Height = 60,
             .Width = 1000,
-            .Font = New Font("Arial", 14, FontStyle.Regular),
+            .Font = New Font("Arial", 13, FontStyle.Regular),
             .Text = "Description :"
         }
 
@@ -238,7 +238,7 @@ Public Class Form1
 
             Try
                 webArticle.CoreWebView2.Navigate(url)
-                Await Task.Delay(1200)
+                Await Task.Delay(2000)
 
                 lblArticleTitle.Text =
                     (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
