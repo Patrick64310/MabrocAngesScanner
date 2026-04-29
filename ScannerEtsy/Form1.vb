@@ -22,10 +22,12 @@ Public Class Form1
     Private LoopStartTime As DateTime
     Private uiTimer As Timer
     Private statusTimer As Timer
+
+    ' ========= FADE =========
     Private fadeValue As Integer = 80
     Private fadeDir As Integer = 1
 
-    ' Hover animation
+    ' ========= HOVER =========
     Private hoverStartTimer As Timer
     Private hoverStopTimer As Timer
     Private startHoverValue As Integer = 0
@@ -81,17 +83,14 @@ Public Class Form1
         AddHandler hoverStopTimer.Tick, AddressOf AnimateStopHover
     End Sub
 
-    ' ================= ICÔNE FENÊTRE =================
+    ' ========= ICÔNE =========
     Private Sub ApplyWindowIcon()
         Try
-            Dim asm = GetType(Form1).Assembly
-            For Each r In asm.GetManifestResourceNames()
+            For Each r In GetType(Form1).Assembly.GetManifestResourceNames()
                 If r.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
-                    Using s = asm.GetManifestResourceStream(r)
-                        If s IsNot Nothing Then
-                            Me.Icon = New Icon(s)
-                            Exit For
-                        End If
+                    Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
+                        Me.Icon = New Icon(s)
+                        Exit For
                     End Using
                 End If
             Next
@@ -99,10 +98,9 @@ Public Class Form1
         End Try
     End Sub
 
-    ' ================= UI =================
+    ' ========= UI =========
     Private Sub InitializeUI()
 
-        ' ===== ROOT =====
         Dim root As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 1,
@@ -110,36 +108,31 @@ Public Class Form1
             .Padding = New Padding(10)
         }
 
-        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))        ' Header
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))     ' Separator
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))   ' Images
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))    ' Bottom
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))
+        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
 
-        ' ===== HEADER =====
+        ' ----- HEADER -----
         lblCurrentArticle = New Label With {
-            .AutoSize = False,
-            .Height = 28,
             .Width = 1050,
+            .Height = 28,
             .Font = New Font("Arial", 10),
             .ForeColor = Color.DarkBlue,
-            .Text = "Article :",
-            .TextAlign = ContentAlignment.MiddleLeft
+            .Text = "Article :"
         }
 
         lblArticleTitle = New Label With {
-            .AutoSize = False,
-            .Height = 56,
             .Width = 1050,
+            .Height = 56,
             .Font = New Font("Arial", 12),
             .ForeColor = Color.DarkGreen,
-            .Text = "Description :",
-            .TextAlign = ContentAlignment.MiddleLeft
+            .Text = "Description :"
         }
 
         Dim header As New FlowLayoutPanel With {
             .AutoSize = True,
-            .FlowDirection = FlowDirection.TopDown,
-            .WrapContents = False
+            .FlowDirection = FlowDirection.TopDown
         }
 
         header.Controls.Add(lblCurrentArticle)
@@ -147,37 +140,32 @@ Public Class Form1
         root.Controls.Add(header, 0, 0)
 
         root.Controls.Add(New Panel With {
-            .Dock = DockStyle.Fill,
             .Height = 2,
+            .Dock = DockStyle.Fill,
             .BackColor = Color.DarkGray
         }, 0, 1)
 
-        ' ===== IMAGES =====
-        Dim imagesRow As New TableLayoutPanel With {
-            .ColumnCount = 2,
-            .Dock = DockStyle.Fill,
-            .Padding = New Padding(10)
-        }
+        ' ----- IMAGES -----
+        Dim imagesRow As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill}
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
 
         picThumbnail = New PictureBox With {
             .Width = 300,
             .Height = 300,
-            .SizeMode = PictureBoxSizeMode.Zoom,
             .BorderStyle = BorderStyle.FixedSingle,
+            .SizeMode = PictureBoxSizeMode.Zoom,
             .Anchor = AnchorStyles.None
         }
 
         picLogo = New PictureBox With {
             .Width = 300,
             .Height = 300,
-            .SizeMode = PictureBoxSizeMode.Zoom,
             .BorderStyle = BorderStyle.FixedSingle,
+            .SizeMode = PictureBoxSizeMode.Zoom,
             .Anchor = AnchorStyles.None
         }
 
-        ' Logo embarqué (robuste)
         For Each r In GetType(Form1).Assembly.GetManifestResourceNames()
             If r.EndsWith(".logo.png", StringComparison.OrdinalIgnoreCase) Then
                 Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
@@ -191,21 +179,12 @@ Public Class Form1
         imagesRow.Controls.Add(picLogo, 1, 0)
         root.Controls.Add(imagesRow, 0, 2)
 
-        ' ===== BAS : GAUCHE / DROITE =====
-        Dim bottomPanel As New TableLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .ColumnCount = 2,
-            .Padding = New Padding(10)
-        }
-        bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70))
-        bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30))
+        ' ----- BAS -----
+        Dim bottom As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill}
+        bottom.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70))
+        bottom.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30))
 
-        ' --- Compteurs (gauche)
-        Dim counters As New FlowLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .FlowDirection = FlowDirection.TopDown
-        }
-
+        Dim counters As New FlowLayoutPanel With {.FlowDirection = FlowDirection.TopDown}
         Dim fnt As New Font("Arial", 14, FontStyle.Bold)
 
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
@@ -220,68 +199,41 @@ Public Class Form1
         counters.Controls.Add(lblDead)
         counters.Controls.Add(lblTime)
 
-        bottomPanel.Controls.Add(counters, 0, 0)
+        bottom.Controls.Add(counters, 0, 0)
 
-        ' --- Actions (droite)
-        Dim actions As New TableLayoutPanel With {
-            .ColumnCount = 1,
-            .RowCount = 3,
-            .Width = 160,
-            .Dock = DockStyle.Bottom
-        }
+        Dim actions As New TableLayoutPanel With {.ColumnCount = 1, .RowCount = 3, .Width = 160}
         actions.RowStyles.Add(New RowStyle(SizeType.Absolute, 40))
         actions.RowStyles.Add(New RowStyle(SizeType.Absolute, 45))
         actions.RowStyles.Add(New RowStyle(SizeType.Absolute, 45))
 
-        pnlStatus = New Panel With {
-            .Width = 160,
-            .Height = 40,
-            .BackColor = Color.Red,
-            .Anchor = AnchorStyles.None
-        }
+        pnlStatus = New Panel With {.Width = 160, .Height = 40, .BackColor = Color.Red}
         MakeRounded(pnlStatus, 20)
 
-        btnStart = New Button With {
-            .Text = "START",
-            .Width = 160,
-            .Height = 40,
-            .Font = fnt,
-            .BackColor = Color.FromArgb(0, 180, 0),
-            .FlatStyle = FlatStyle.Flat,
-            .Anchor = AnchorStyles.None
-        }
+        btnStart = New Button With {.Text = "START", .Width = 160, .Height = 40, .Font = fnt}
+        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 40, .Font = fnt, .Visible = False}
+
+        btnStart.FlatStyle = FlatStyle.Flat
         btnStart.FlatAppearance.BorderSize = 0
-        RoundButton(btnStart, 20)
-
-        btnStop = New Button With {
-            .Text = "STOP",
-            .Width = 160,
-            .Height = 40,
-            .Font = fnt,
-            .BackColor = Color.FromArgb(180, 0, 0),
-            .FlatStyle = FlatStyle.Flat,
-            .Visible = False,
-            .Anchor = AnchorStyles.None
-        }
+        btnStop.FlatStyle = FlatStyle.Flat
         btnStop.FlatAppearance.BorderSize = 0
-        RoundButton(btnStop, 20)
 
-        ' Hover animé
-        AddHandler btnStart.MouseEnter, Sub() startHoverDir = 1 : hoverStartTimer.Start()
-        AddHandler btnStart.MouseLeave, Sub() startHoverDir = -1 : hoverStartTimer.Start()
-        AddHandler btnStop.MouseEnter, Sub() stopHoverDir = 1 : hoverStopTimer.Start()
-        AddHandler btnStop.MouseLeave, Sub() stopHoverDir = -1 : hoverStopTimer.Start()
+        RoundButton(btnStart, 20)
+        RoundButton(btnStop, 20)
 
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
+
+        AddHandler btnStart.MouseEnter, AddressOf StartHoverEnter
+        AddHandler btnStart.MouseLeave, AddressOf StartHoverLeave
+        AddHandler btnStop.MouseEnter, AddressOf StopHoverEnter
+        AddHandler btnStop.MouseLeave, AddressOf StopHoverLeave
 
         actions.Controls.Add(pnlStatus, 0, 0)
         actions.Controls.Add(btnStart, 0, 1)
         actions.Controls.Add(btnStop, 0, 2)
 
-        bottomPanel.Controls.Add(actions, 1, 0)
-        root.Controls.Add(bottomPanel, 0, 3)
-
+        bottom.Controls.Add(actions, 1, 0)
+        root.Controls.Add(bottom, 0, 3)
         Me.Controls.Add(root)
 
         webPages = New WebView2 With {.Visible = False}
@@ -290,7 +242,7 @@ Public Class Form1
         Me.Controls.Add(webArticle)
     End Sub
 
-    ' ===== Arrondis =====
+    ' ========= ARRONDIS =========
     Private Sub MakeRounded(ctrl As Control, radius As Integer)
         Dim path As New GraphicsPath()
         Dim r As Rectangle = ctrl.ClientRectangle
@@ -301,16 +253,38 @@ Public Class Form1
         path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90)
         path.AddArc(r.X, r.Bottom - d, d, d, 90, 90)
         path.CloseFigure()
-
         ctrl.Region = New Region(path)
     End Sub
 
     Private Sub RoundButton(btn As Button, radius As Integer)
         MakeRounded(btn, radius)
-        AddHandler btn.Resize, Sub() MakeRounded(btn, radius)
+        AddHandler btn.Resize, Sub(sender, e)
+            MakeRounded(btn, radius)
+        End Sub
     End Sub
 
-    ' ===== ANIMATION VOYANT (FADE VERT) =====
+    ' ========= HOVER =========
+    Private Sub StartHoverEnter(sender As Object, e As EventArgs)
+        startHoverDir = 1
+        hoverStartTimer.Start()
+    End Sub
+
+    Private Sub StartHoverLeave(sender As Object, e As EventArgs)
+        startHoverDir = -1
+        hoverStartTimer.Start()
+    End Sub
+
+    Private Sub StopHoverEnter(sender As Object, e As EventArgs)
+        stopHoverDir = 1
+        hoverStopTimer.Start()
+    End Sub
+
+    Private Sub StopHoverLeave(sender As Object, e As EventArgs)
+        stopHoverDir = -1
+        hoverStopTimer.Start()
+    End Sub
+
+    ' ========= ANIMATIONS =========
     Private Sub AnimateStatus(sender As Object, e As EventArgs)
         If Not Running Then Exit Sub
 
@@ -321,7 +295,6 @@ Public Class Form1
         pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
     End Sub
 
-    ' ===== HOVER ANIMÉ =====
     Private Sub AnimateStartHover(sender As Object, e As EventArgs)
         startHoverValue += startHoverDir * 10
         If startHoverValue >= 100 Then startHoverValue = 100 : hoverStartTimer.Stop()
@@ -340,8 +313,9 @@ Public Class Form1
         btnStop.BackColor = Color.FromArgb(r, 0, 0)
     End Sub
 
-    ' ================= START =================
+    ' ========= START =========
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
+
         Running = True
         btnStart.Visible = False
         btnStop.Visible = True
@@ -403,7 +377,7 @@ Public Class Form1
         End While
     End Sub
 
-    ' ================= STOP =================
+    ' ========= STOP =========
     Private Sub StopProcess(sender As Object, e As EventArgs)
         Running = False
         btnStart.Visible = True
@@ -414,7 +388,7 @@ Public Class Form1
         picThumbnail.Image = Nothing
     End Sub
 
-    ' ================= UI TIMER =================
+    ' ========= UI =========
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblClicks.Text = $"Clics cumulés : {TotalClicks}"
         lblArticles.Text = $"Articles trouvés : {ArticlesFound}"
