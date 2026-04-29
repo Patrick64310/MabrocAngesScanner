@@ -108,6 +108,7 @@ Public Class Form1
             .Height = 28,
             .Width = 1050,
             .Font = New Font("Arial", 10, FontStyle.Regular),
+            .ForeColor = Color.DarkBlue,
             .Text = "Article :",
             .TextAlign = ContentAlignment.MiddleLeft
         }
@@ -116,8 +117,9 @@ Public Class Form1
             .AutoSize = False,
             .Height = 56,
             .Width = 1050,
-            .Font = New Font("Arial", 12, FontStyle.Regular),
-            .Text = "Description :",
+            .Font = New Font("Arial", 11, FontStyle.Regular),
+            .ForeColor = Color.DarkGreen,
+            .Text = "Cliquer sur START pour commencer",
             .TextAlign = ContentAlignment.MiddleLeft
         }
 
@@ -214,14 +216,14 @@ Public Class Form1
         }
 
         pnlStatus = New Panel With {
-            .Width = 18,
-            .Height = 18,
+            .Width = 160,
+            .Height = 60,
             .BackColor = Color.Red,
             .Margin = New Padding(0, 0, 0, 10)
         }
 
-        btnStart = New Button With {.Text = "START", .Width = 160, .Height = 40, .Font = fnt}
-        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 40, .Font = fnt, .Visible = False}
+        btnStart = New Button With {.Text = "START", .Width = 160, .Height = 60, .Font = fnt}
+        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 60, .Font = fnt, .Visible = False}
 
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
