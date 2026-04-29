@@ -5,6 +5,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Assets\Etsy.ico</ApplicationIcon>
 
     <!-- Point d'entrée -->
     <StartupObject>MabrocAnges.Program</StartupObject>
@@ -13,9 +14,13 @@
     <RootNamespace>MabrocAnges</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\logo.png" />
+  </ItemGroup>
+
   <!-- ✅ DÉPENDANCE WEBVIEW2 OBLIGATOIRE -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2420.47" />
   </ItemGroup>
-<ApplicationIcon>Assets\Etsy.ico</ApplicationIcon>
+
 </Project>
