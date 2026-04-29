@@ -195,31 +195,56 @@ Public Class Form1
         If ArticlesFound = 0 Then Running = False : Exit Sub
 
         ' ===== NAVIGATION ARTICLES =====
+       
+' ===== NAVIGATION ARTICLES — BOUCLE INFINIE =====
         LoopRunning = True
         LoopStartTime = DateTime.Now
         uiTimer.Start()
-
+        WriteLog("TIMER START")
+        
         Dim rnd As New Random()
-
-        For Each articleUrl In ArticlesUrl
-            If Not Running Then Exit For
-
+        Dim index As Integer = 0
+        
+        While Running
+        
+            If ArticlesUrl.Count = 0 Then Exit While
+        
+            Dim articleUrl As String = ArticlesUrl(index)
+        
             lblCurrentArticle.Text = "Article en cours : " & articleUrl
             WriteLog("CLIC ARTICLE : " & articleUrl)
             TotalClicks += 1
-
-            If chkVisualiserArticles.Checked Then
-                webArticle.Visible = True
-                webArticle.Source = New Uri(articleUrl)
-                Await Task.Delay(1000)
-                webArticle.Source = New Uri("about:blank")
-                webArticle.Visible = False
-            End If
-
+        
+            Try
+                If chkVisualiserArticles.Checked Then
+                    webArticle.Visible = True
+                    webArticle.Source = New Uri(articleUrl)
+        
+                    Await Task.Delay(1000) ' affichage 1 seconde
+        
+                    webArticle.Source = New Uri("about:blank")
+                    webArticle.Visible = False
+                End If
+            Catch
+                DeadLinks += 1
+                WriteLog("LIEN MORT : " & articleUrl)
+            End Try
+        
+            ' Pause aléatoire 3–9 secondes (Excel-like)
             Await Task.Delay(rnd.Next(3000, 9000))
-        Next
+        
+            ' 🔁 Passage à l'article suivant
+            index += 1
+            If index >= ArticlesUrl.Count Then
+                index = 0 ' retour début liste
+                WriteLog("RETOUR DEBUT LISTE ARTICLES")
+            End If
+        
+        End While
+        
+        StopTimerInternal()
+        WriteLog("FIN BOUCLE ARTICLES")
 
-        StopProcess(Nothing, Nothing)
     End Sub
 
     ' ========== STOP ==========
