@@ -10,7 +10,7 @@ Public Class Form1
 
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
-
+ 
     ' ========= ÉTAT =========
     Private Running As Boolean
     Private TotalClicks As Integer
