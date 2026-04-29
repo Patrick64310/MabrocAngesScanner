@@ -11,7 +11,7 @@
     <StartupObject>MabrocAnges.Program</StartupObject>
 
     <AssemblyName>MabrocAngesScanner</AssemblyName>
-    <RootNamespace>MabrocAnges</RootNamespace>
+    <RootNamespace>ScannerEtsy</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
