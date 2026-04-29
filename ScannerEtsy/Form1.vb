@@ -33,6 +33,7 @@ Public Class Form1
     Private btnStart As Button
     Private btnStop As Button
     Private picThumbnail As PictureBox
+    Private picLogo As PictureBox
 
     ' ========= WEBVIEW =========
     Private webPages As WebView2
@@ -44,10 +45,11 @@ Public Class Form1
         RegexOptions.IgnoreCase)
 
     Public Sub New()
-        Me.Text = "Mabroc'Anges – Scanner Etsy (Final)"
+        Me.Text = "Mabroc'Anges – Scanner Etsy"
         Me.Width = 1150
         Me.Height = 650
         Me.StartPosition = FormStartPosition.CenterScreen
+        Me.BackColor = Color.AliceBlue
 
         InitializeUI()
 
@@ -67,13 +69,11 @@ Public Class Form1
 
         root.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 340))
         root.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))
+        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
 
-        ' ✅ IMPORTANT : AutoSize pour le header
-        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))     ' Header
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))  ' Separator
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100)) ' Content
-
-        ' ===== HEADER (URL + TITRE) =====
+        ' ===== HEADER =====
         lblCurrentArticle = New Label With {
             .AutoSize = False,
             .Height = 32,
@@ -112,10 +112,10 @@ Public Class Form1
         root.SetColumnSpan(separator, 2)
         root.Controls.Add(separator, 0, 1)
 
-        ' ===== IMAGE (GAUCHE) =====
-        Dim imagePanel As New Panel With {
+        ' ===== GAUCHE : MINIATURE + LOGO =====
+        Dim leftPanel As New FlowLayoutPanel With {
             .Dock = DockStyle.Fill,
-            .BackColor = Color.FromArgb(245, 245, 245),
+            .FlowDirection = FlowDirection.TopDown,
             .Padding = New Padding(10)
         }
 
@@ -126,10 +126,26 @@ Public Class Form1
             .BorderStyle = BorderStyle.FixedSingle
         }
 
-        imagePanel.Controls.Add(picThumbnail)
-        root.Controls.Add(imagePanel, 0, 2)
+        picLogo = New PictureBox With {
+            .Width = 300,
+            .Height = 300,
+            .SizeMode = PictureBoxSizeMode.Zoom,
+            .BorderStyle = BorderStyle.FixedSingle
+        }
 
-        ' ===== ZONE DROITE =====
+        ' ✅ Chargement du logo depuis la ressource embarquée
+        Dim asm = GetType(Form1).Assembly
+        Using s = asm.GetManifestResourceStream("ScannerEtsy.Assets.logo.png")
+            If s IsNot Nothing Then
+                picLogo.Image = Image.FromStream(s)
+            End If
+        End Using
+
+        leftPanel.Controls.Add(picThumbnail)
+        leftPanel.Controls.Add(picLogo)
+        root.Controls.Add(leftPanel, 0, 2)
+
+        ' ===== DROITE : CONTROLES =====
         Dim rightPanel As New FlowLayoutPanel With {
             .Dock = DockStyle.Fill,
             .FlowDirection = FlowDirection.TopDown
@@ -138,7 +154,7 @@ Public Class Form1
         Dim fnt As New Font("Arial", 14, FontStyle.Bold)
 
         btnStart = New Button With {.Text = "START", .Width = 160, .Height = 40, .Font = fnt}
-        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 40, .Font = fnt}
+        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 40, .Font = fnt, .Visible = False}
 
         AddHandler btnStart.MouseEnter, Sub() btnStart.BackColor = Color.LightGreen
         AddHandler btnStart.MouseLeave, Sub() btnStart.BackColor = SystemColors.Control
@@ -165,7 +181,6 @@ Public Class Form1
         root.Controls.Add(rightPanel, 1, 2)
         Me.Controls.Add(root)
 
-        ' ===== WEBVIEW INVISIBLE =====
         webPages = New WebView2 With {.Visible = False}
         webArticle = New WebView2 With {.Visible = False}
         Me.Controls.Add(webPages)
@@ -176,6 +191,9 @@ Public Class Form1
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
 
         Running = True
+        btnStart.Visible = False
+        btnStop.Visible = True
+
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -247,6 +265,8 @@ Public Class Form1
     ' ================= STOP =================
     Private Sub StopProcess(sender As Object, e As EventArgs)
         Running = False
+        btnStart.Visible = True
+        btnStop.Visible = False
         uiTimer.Stop()
         picThumbnail.Image = Nothing
     End Sub
