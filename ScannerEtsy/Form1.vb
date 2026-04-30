@@ -209,7 +209,7 @@ Public Class Form1
         counters.Controls.Add(lblDead)
 		lblDead.Margin     = New Padding(0, 0, 0, 5)
         counters.Controls.Add(lblProgress)
-		counters.Padding = New Padding(0, 5, 0, 0)		
+		counters.Padding = New Padding(0, 10, 0, 0)		
 		
         bottomPanel.Controls.Add(counters, 0, 0)
 
@@ -235,10 +235,16 @@ Public Class Form1
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
 
+		
+		btnStart.Margin = New Padding(0, 0, 60, 0)
+		btnStop.Margin  = New Padding(0, 0, 60, 0)
+
+
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
         actions.Padding = New Padding(0, 0, 140, 0)
+		
 		
         bottomPanel.Controls.Add(actions, 1, 0)
         root.Controls.Add(bottomPanel, 0, 3)
@@ -269,7 +275,7 @@ Public Class Form1
         btnStart.Visible = False
         btnStop.Visible = True
         statusTimer.Start()
-        lblArticleTitle.Text = "Recherche en cours . . ."
+        lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter quelques secondes . . . "
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -277,6 +283,9 @@ Public Class Form1
 
         Await webPages.EnsureCoreWebView2Async()
         Await webArticle.EnsureCoreWebView2Async()
+
+        LoopStartTime = DateTime.Now
+        uiTimer.Start()
 
         For page = 1 To 20
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
@@ -288,13 +297,13 @@ Public Class Form1
             For Each m As Match In ListingRegex.Matches(html)
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
+					lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter quelques secondes . . .  {ArticlesUrl.Count} articles "
                 End If
             Next
         Next
 
         ArticlesFound = ArticlesUrl.Count
-        LoopStartTime = DateTime.Now
-        uiTimer.Start()
+
 
         Dim rnd As New Random()
         Dim i As Integer = 0
