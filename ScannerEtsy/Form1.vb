@@ -238,7 +238,7 @@ Public Class Form1
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
-        actions.Padding = New Padding(0, 0, 40, 0)
+        actions.Padding = New Padding(0, 0, 140, 0)
 		
         bottomPanel.Controls.Add(actions, 1, 0)
         root.Controls.Add(bottomPanel, 0, 3)
@@ -280,7 +280,7 @@ Public Class Form1
 
         For page = 1 To 20
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
-            Await Task.Delay(2400)
+            Await Task.Delay(2600)
 
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
@@ -313,7 +313,7 @@ Public Class Form1
 
             Try
                 webArticle.CoreWebView2.Navigate(url)
-                Await Task.Delay(1000)
+                Await Task.Delay(1500)
 
                 lblArticleTitle.Text =
                     (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
