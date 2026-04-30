@@ -220,7 +220,7 @@ Public Class Form1
             .WrapContents = False,
             .AutoSize = False,
             .MinimumSize = New Size(160, 0),
-            .Padding = New Padding(10)
+            .Padding = New Padding(110, 10, 10, 10)
         }
 
 
