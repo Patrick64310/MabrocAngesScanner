@@ -209,7 +209,7 @@ Public Class Form1
         counters.Controls.Add(lblDead)
 		lblDead.Margin     = New Padding(0, 0, 0, 5)
         counters.Controls.Add(lblProgress)
-				
+		counters.Padding = New Padding(0, 5, 0, 0)		
 		
         bottomPanel.Controls.Add(counters, 0, 0)
 
@@ -220,11 +220,14 @@ Public Class Form1
             .Anchor = AnchorStyles.Bottom Or AnchorStyles.Right
         }
 
-        pnlStatus = New Panel With {
-            .Width = .Height = 58,
-            .BackColor = Color.Red,
-            .Margin = New Padding(0, 0, 0, 10)
-        }
+
+		pnlStatus = New Panel With {
+			.Width = 58,
+			.Height = 58,
+			.BackColor = Color.Red,
+			.Margin = New Padding(0, 0, 0, 10)
+		}
+
 
         btnStart = New Button With {.Text = "START", .Width = 160, .Height = 60, .Font = fnt}
         btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 60, .Font = fnt, .Visible = False}
@@ -277,7 +280,7 @@ Public Class Form1
 
         For page = 1 To 20
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
-            Await Task.Delay(900)
+            Await Task.Delay(1500)
 
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
@@ -310,7 +313,7 @@ Public Class Form1
 
             Try
                 webArticle.CoreWebView2.Navigate(url)
-                Await Task.Delay(1200)
+                Await Task.Delay(2000)
 
                 lblArticleTitle.Text =
                     (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
