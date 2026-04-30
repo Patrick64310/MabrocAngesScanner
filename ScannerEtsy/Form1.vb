@@ -222,10 +222,10 @@ Public Class Form1
 
 
 		pnlStatus = New Panel With {
-			.Width = 58,
-			.Height = 58,
+			.Width = 52,
+			.Height = 52,
 			.BackColor = Color.Red,
-			.Margin = New Padding(0, 0, 0, 10)
+			.Margin = New Padding(0, 0, 0, 25)
 		}
 
 
@@ -238,7 +238,7 @@ Public Class Form1
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
-        actions.Padding = New Padding(0, 0, 30, 0)
+        actions.Padding = New Padding(0, 0, 40, 0)
 		
         bottomPanel.Controls.Add(actions, 1, 0)
         root.Controls.Add(bottomPanel, 0, 3)
