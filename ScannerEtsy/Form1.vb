@@ -201,15 +201,15 @@ Public Class Form1
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
 
         counters.Controls.Add(lblTime)
-		lblTime.Margin     = New Padding(0, 0, 0, 5)
+		lblTime.Margin     = New Padding(0, 0, 50, 5)
         counters.Controls.Add(lblClicks)
-		lblClicks.Margin   = New Padding(0, 0, 0, 5)		
+		lblClicks.Margin   = New Padding(0, 0, 50, 5)		
         counters.Controls.Add(lblArticles)
-		lblArticles.Margin = New Padding(0, 0, 0, 5)
+		lblArticles.Margin = New Padding(0, 0, 50, 5)
         counters.Controls.Add(lblDead)
-		lblDead.Margin     = New Padding(0, 0, 0, 5)
+		lblDead.Margin     = New Padding(0, 0, 50, 5)
         counters.Controls.Add(lblProgress)
-		counters.Padding = New Padding(0, 10, 0, 0)		
+		counters.Padding = New Padding(0, 10, 50, 0)		
 		
         bottomPanel.Controls.Add(counters, 0, 0)
 
@@ -250,20 +250,17 @@ Public Class Form1
         AddHandler btnStop.MouseLeave, Sub()
             btnStop.BackColor = SystemColors.Control
         End Sub
-
                                                                                     
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
-
 		
 		btnStart.Margin = New Padding(0, 0, 60, 0)
 		btnStop.Margin  = New Padding(0, 0, 60, 0)
 
-
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
-        actions.Padding = New Padding(0, 0, 70, 0)
+        'actions.Padding = New Padding(0, 0, 70, 0)
 		
 		
         bottomPanel.Controls.Add(actions, 1, 0)
@@ -279,17 +276,16 @@ Public Class Form1
 
         ' Ajouter le cadre noir
         Private Sub DrawStatusBorder(sender As Object, e As PaintEventArgs)
-            Using pen As New Pen(Color.Black, 6)
+            Using pen As New Pen(Color.Black, 1)
                 e.Graphics.DrawRectangle(
                     pen,
                     3,
                     3,
-                    pnlStatus.Width - 6,
-                    pnlStatus.Height - 6
+                    pnlStatus.Width - 1,
+                    pnlStatus.Height - 1
                 )
             End Using
         End Sub
-
                                                                                         
     ' ===== ANIMATION DU VOYANT (FADE VERT) =====
     Private Sub AnimateStatus(sender As Object, e As EventArgs)
@@ -335,7 +331,7 @@ Public Class Form1
                     ArticlesUrl.Add(m.Value)
                 End If
 				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter  . . .   {ArticlesUrl.Count} articles "
-				lblArticles.Text = $"Articles trouvés :    {ArticlesUrl.Count}"
+				if ArticlesUrl.Count > 0 then lblArticles.Text = $"Articles trouvés :    {ArticlesUrl.Count}"
             Next
         Next
 
@@ -347,7 +343,7 @@ Public Class Form1
 
         While Running
             Dim url = ArticlesUrl(i)
-            lblCurrentArticle.Text = "Lien de l'article : " & url
+            ' lblCurrentArticle.Text = "Lien de l'article : " & url
 
             If LoopCount = 1 Then
                 lblProgress.Text = $"Article {i + 1} / {ArticlesFound}     (1er tour)"
@@ -363,7 +359,7 @@ Public Class Form1
 
                 lblArticleTitle.Text =
                     (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
-
+				lblCurrentArticle.Text = "Lien de l'article : " & url
                 Dim img = Await webArticle.ExecuteScriptAsync(
                     "document.querySelector('meta[property=""og:image""]')?.content")
                 img = img.Replace("""", "")
