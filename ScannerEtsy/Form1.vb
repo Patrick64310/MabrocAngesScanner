@@ -222,15 +222,15 @@ Public Class Form1
 
 
 		pnlStatus = New Panel With {
-			.Width = 52,
-			.Height = 52,
+			.Width = 50,
+			.Height = 50,
 			.BackColor = Color.Red,
-			.Margin = New Padding(0, 0, 0, 120)
+			.Margin = New Padding(0, 0, 0, 140)
 		}
 
 
-        btnStart = New Button With {.Text = "START", .Width = 160, .Height = 60, .Font = fnt}
-        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 60, .Font = fnt, .Visible = False}
+        btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
+        btnStop = New Button With {.Text = "STOP", .Width = 100, .Height = 60, .Font = fnt, .Visible = False}
 
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
@@ -275,7 +275,7 @@ Public Class Form1
         btnStart.Visible = False
         btnStop.Visible = True
         statusTimer.Start()
-        lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter 1 minute . . . "
+        lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter  . . . "
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -287,18 +287,21 @@ Public Class Form1
         LoopStartTime = DateTime.Now
         uiTimer.Start()
 
-        For page = 1 To 20
+        For page = 1 To 10
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
             Await Task.Delay(2600)
 
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
 
+			If html.Contains("Aucun article en vente pour le moment") Then Exit For
+
             For Each m As Match In ListingRegex.Matches(html)
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
                 End If
-				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter 1 minute . . .  {ArticlesUrl.Count} articles "
+				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter  . . .   {ArticlesUrl.Count} articles "
+				lblArticles.Text = $"Articles trouvés :    {ArticlesUrl.Count}"
             Next
         Next
 
