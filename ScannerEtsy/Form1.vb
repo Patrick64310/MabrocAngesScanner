@@ -7,10 +7,10 @@ Imports Microsoft.Web.WebView2.WinForms
 Public Class Form1
     Inherits Form
 
-    ' ========= DONNÉES =========
+    ' ========= DONNEES =========
     Private ArticlesUrl As New List(Of String)
 
-    ' ========= ÉTAT =========
+    ' ========= ETAT =========
     Private Running As Boolean
     Private TotalClicks As Integer
     Private ArticlesFound As Integer
@@ -50,7 +50,7 @@ Public Class Form1
         RegexOptions.IgnoreCase)
 
     Public Sub New()
-        Me.Text = "Mabroc'Anges – Scanner Etsy"
+        Me.Text = "Mabroc'Anges - Scanner Etsy"
         Me.Width = 1150
         Me.Height = 720
         Me.StartPosition = FormStartPosition.CenterScreen
@@ -59,20 +59,21 @@ Public Class Form1
         InitializeUI()
         ApplyWindowIcon()
 
-        uiTimer = New Timer() With {.Interval = 1000}
+        uiTimer = New Timer()
+        uiTimer.Interval = 1000
         AddHandler uiTimer.Tick, AddressOf UpdateUI
 
-        statusTimer = New Timer() With {.Interval = 60}
+        statusTimer = New Timer()
+        statusTimer.Interval = 60
         AddHandler statusTimer.Tick, AddressOf AnimateStatus
     End Sub
 
-    ' ================= ICÔNE =================
+    ' ========= ICONE =========
     Private Sub ApplyWindowIcon()
         Try
-            Dim asm = GetType(Form1).Assembly
-            For Each resName In asm.GetManifestResourceNames()
-                If resName.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
-                    Using s = asm.GetManifestResourceStream(resName)
+            For Each r As String In GetType(Form1).Assembly.GetManifestResourceNames()
+                If r.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
+                    Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
                         If s IsNot Nothing Then
                             Me.Icon = New Icon(s)
                             Exit For
@@ -84,16 +85,14 @@ Public Class Form1
         End Try
     End Sub
 
-    ' ================= UI =================
+    ' ========= UI =========
     Private Sub InitializeUI()
 
-        ' ----- ROOT -----
-        Dim root As New TableLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .ColumnCount = 1,
-            .RowCount = 4,
-            .Padding = New Padding(10)
-        }
+        Dim root As New TableLayoutPanel()
+        root.Dock = DockStyle.Fill
+        root.ColumnCount = 1
+        root.RowCount = 4
+        root.Padding = New Padding(10)
 
         root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))
@@ -101,42 +100,50 @@ Public Class Form1
         root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
 
         ' ----- HEADER -----
-        lblCurrentArticle = New Label With {
-            .Width = 1050,
-            .Height = 28,
-            .Font = New Font("Arial", 10),
-            .ForeColor = Color.DarkBlue,
-            .TextAlign = ContentAlignment.MiddleLeft
-        }
+        lblCurrentArticle = New Label()
+        lblCurrentArticle.Width = 1050
+        lblCurrentArticle.Height = 28
+        lblCurrentArticle.Font = New Font("Arial", 10)
+        lblCurrentArticle.ForeColor = Color.DarkBlue
 
-        lblArticleTitle = New Label With {
-            .Width = 1050,
-            .Height = 56,
-            .Font = New Font("Arial", 11),
-            .ForeColor = Color.DarkGreen,
-            .Text = "Cliquer sur START pour commencer",
-            .TextAlign = ContentAlignment.MiddleLeft
-        }
+        lblArticleTitle = New Label()
+        lblArticleTitle.Width = 1050
+        lblArticleTitle.Height = 56
+        lblArticleTitle.Font = New Font("Arial", 11)
+        lblArticleTitle.ForeColor = Color.DarkGreen
+        lblArticleTitle.Text = "Cliquer sur START pour commencer"
 
-        Dim header As New FlowLayoutPanel With {
-            .AutoSize = True,
-            .FlowDirection = FlowDirection.TopDown
-        }
+        Dim header As New FlowLayoutPanel()
+        header.AutoSize = True
+        header.FlowDirection = FlowDirection.TopDown
         header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
 
         root.Controls.Add(header, 0, 0)
-        root.Controls.Add(New Panel With {.Height = 2, .BackColor = Color.DarkGray, .Dock = DockStyle.Fill}, 0, 1)
+        root.Controls.Add(New Panel() With {.BackColor = Color.DarkGray, .Height = 2, .Dock = DockStyle.Fill}, 0, 1)
 
         ' ----- IMAGES -----
-        Dim imagesRow As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill}
+        Dim imagesRow As New TableLayoutPanel()
+        imagesRow.ColumnCount = 2
+        imagesRow.Dock = DockStyle.Fill
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
 
-        picThumbnail = New PictureBox With {.Width = 300, .Height = 300, .SizeMode = PictureBoxSizeMode.Zoom, .BorderStyle = BorderStyle.FixedSingle, .Anchor = AnchorStyles.None}
-        picLogo = New PictureBox With {.Width = 300, .Height = 300, .SizeMode = PictureBoxSizeMode.Zoom, .BorderStyle = BorderStyle.FixedSingle, .Anchor = AnchorStyles.None}
+        picThumbnail = New PictureBox()
+        picThumbnail.Width = 300
+        picThumbnail.Height = 300
+        picThumbnail.SizeMode = PictureBoxSizeMode.Zoom
+        picThumbnail.BorderStyle = BorderStyle.FixedSingle
+        picThumbnail.Anchor = AnchorStyles.None
 
-        For Each r In GetType(Form1).Assembly.GetManifestResourceNames()
+        picLogo = New PictureBox()
+        picLogo.Width = 300
+        picLogo.Height = 300
+        picLogo.SizeMode = PictureBoxSizeMode.Zoom
+        picLogo.BorderStyle = BorderStyle.FixedSingle
+        picLogo.Anchor = AnchorStyles.None
+
+        For Each r As String In GetType(Form1).Assembly.GetManifestResourceNames()
             If r.EndsWith(".logo.png", StringComparison.OrdinalIgnoreCase) Then
                 Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
                     picLogo.Image = Image.FromStream(s)
@@ -150,19 +157,23 @@ Public Class Form1
         root.Controls.Add(imagesRow, 0, 2)
 
         ' ----- BAS -----
-        Dim bottomPanel As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill, .Padding = New Padding(10)}
+        Dim bottomPanel As New TableLayoutPanel()
+        bottomPanel.Dock = DockStyle.Fill
+        bottomPanel.ColumnCount = 2
+        bottomPanel.Padding = New Padding(10)
         bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30))
         bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70))
 
-        Dim counters As New FlowLayoutPanel With {.FlowDirection = FlowDirection.TopDown}
+        Dim counters As New FlowLayoutPanel()
+        counters.FlowDirection = FlowDirection.TopDown
 
         Dim fnt As New Font("Arial", 14, FontStyle.Bold)
 
-        lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue, .Margin = New Padding(0, 0, 0, 10)}
-        lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red, .Margin = New Padding(0, 0, 0, 10)}
-        lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt, .Margin = New Padding(0, 0, 0, 10)}
-        lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt, .Margin = New Padding(0, 0, 0, 10)}
-        lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
+        lblTime = New Label() With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkGreen, .Margin = New Padding(0, 0, 0, 10)}
+        lblClicks = New Label() With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red, .Margin = New Padding(0, 0, 0, 10)}
+        lblArticles = New Label() With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue, .Margin = New Padding(0, 0, 0, 10)}
+        lblDead = New Label() With {.Width = 520, .Height = 30, .Font = fnt, .Margin = New Padding(0, 0, 0, 10)}
+        lblProgress = New Label() With {.Width = 520, .Height = 30, .Font = fnt}
 
         counters.Controls.Add(lblTime)
         counters.Controls.Add(lblClicks)
@@ -172,13 +183,19 @@ Public Class Form1
 
         bottomPanel.Controls.Add(counters, 0, 0)
 
-        Dim actions As New FlowLayoutPanel With {.FlowDirection = FlowDirection.TopDown, .Dock = DockStyle.Bottom}
+        Dim actions As New FlowLayoutPanel()
+        actions.FlowDirection = FlowDirection.TopDown
+        actions.Dock = DockStyle.Bottom
         actions.Padding = New Padding(0, 0, 60, 0)
 
-        pnlStatus = New Panel With {.Width = 60, .Height = 60, .BackColor = Color.Red, .Margin = New Padding(0, 0, 0, 60)}
+        pnlStatus = New Panel()
+        pnlStatus.Width = 60
+        pnlStatus.Height = 60
+        pnlStatus.BackColor = Color.Red
+        pnlStatus.Margin = New Padding(0, 0, 0, 60)
 
-        btnStart = New Button With {.Text = "START", .Width = 160, .Height = 60, .Font = fnt}
-        btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 60, .Font = fnt, .Visible = False}
+        btnStart = New Button() With {.Text = "START", .Width = 160, .Height = 60, .Font = fnt}
+        btnStop = New Button() With {.Text = "STOP", .Width = 160, .Height = 60, .Font = fnt, .Visible = False}
 
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
@@ -192,8 +209,8 @@ Public Class Form1
 
         Me.Controls.Add(root)
 
-        webPages = New WebView2 With {.Visible = False}
-        webArticle = New WebView2 With {.Visible = False}
+        webPages = New WebView2() With {.Visible = False}
+        webArticle = New WebView2() With {.Visible = False}
         Me.Controls.Add(webPages)
         Me.Controls.Add(webArticle)
     End Sub
@@ -216,8 +233,8 @@ Public Class Form1
         btnStart.Visible = False
         btnStop.Visible = True
         statusTimer.Start()
-        lblArticleTitle.Text = "Recherche en cours…"
 
+        lblArticleTitle.Text = "Recherche en cours..."
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -226,11 +243,11 @@ Public Class Form1
         Await webPages.EnsureCoreWebView2Async()
         Await webArticle.EnsureCoreWebView2Async()
 
-        For page = 1 To 20
-            webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
+        For page As Integer = 1 To 20
+            webPages.Source = New Uri("https://www.etsy.com/fr/shop/mabrocanges?page=" & page)
             Await Task.Delay(900)
 
-            Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
+            Dim html As String = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
 
             For Each m As Match In ListingRegex.Matches(html)
@@ -244,17 +261,17 @@ Public Class Form1
         LoopStartTime = DateTime.Now
         uiTimer.Start()
 
-        Dim i As Integer = 0
         Dim rnd As New Random()
+        Dim i As Integer = 0
 
         While Running
-            Dim url = ArticlesUrl(i)
+            Dim url As String = ArticlesUrl(i)
             lblCurrentArticle.Text = "Lien de l'article : " & url
 
             If LoopCount = 1 Then
-                lblProgress.Text = $"Article {i + 1} / {ArticlesFound} (1er tour)"
+                lblProgress.Text = "Article " & (i + 1) & "  /  " & ArticlesFound & " (1er tour)"
             Else
-                lblProgress.Text = $"Article {i + 1} / {ArticlesFound} ({LoopCount}ème tour)"
+                lblProgress.Text = "Article " & (i + 1) & "  /  " & ArticlesFound & " (" & LoopCount & "eme tour)"
             End If
 
             TotalClicks += 1
@@ -263,14 +280,11 @@ Public Class Form1
                 webArticle.CoreWebView2.Navigate(url)
                 Await Task.Delay(1200)
 
-                lblArticleTitle.Text =
-                    (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
+                lblArticleTitle.Text = (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
 
-                Dim img = Await webArticle.ExecuteScriptAsync(
-                    "document.querySelector('meta[property=""og:image""]')?.content")
+                Dim img As String = Await webArticle.ExecuteScriptAsync("document.querySelector('meta[property=""og:image""]')?.content")
                 img = img.Replace("""", "")
                 If img.StartsWith("http") Then picThumbnail.LoadAsync(img)
-
             Catch
                 DeadLinks += 1
             End Try
@@ -294,13 +308,12 @@ Public Class Form1
         lblCurrentArticle.Text = ""
     End Sub
 
-    ' ========= UI =========
+    ' ========= UI TIMER =========
     Private Sub UpdateUI(sender As Object, e As EventArgs)
-        lblClicks.Text = $"Clics cumulés :    {TotalClicks}"
-        lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
-        lblDead.Text = $"Liens morts :    {DeadLinks}"
-        lblTime.Text = $"Temps activité :    {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
+        lblClicks.Text = "Clics cumules :    " & TotalClicks
+        lblArticles.Text = "Articles trouves :    " & ArticlesFound
+        lblDead.Text = "Liens morts :    " & DeadLinks
+        lblTime.Text = "Temps activite :    " & (DateTime.Now - LoopStartTime).ToString("hh\:mm\:ss")
     End Sub
 
 End Class
-``
