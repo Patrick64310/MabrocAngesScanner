@@ -201,15 +201,15 @@ Public Class Form1
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
 
         counters.Controls.Add(lblTime)
-		lblTime.Margin     = New Padding(0, 0, 50, 5)
+		lblTime.Margin     = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblClicks)
-		lblClicks.Margin   = New Padding(0, 0, 50, 5)		
+		lblClicks.Margin   = New Padding(0, 0, 150, 5)		
         counters.Controls.Add(lblArticles)
-		lblArticles.Margin = New Padding(0, 0, 50, 5)
+		lblArticles.Margin = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblDead)
-		lblDead.Margin     = New Padding(0, 0, 50, 5)
+		lblDead.Margin     = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblProgress)
-		counters.Padding = New Padding(0, 10, 50, 0)		
+		counters.Padding = New Padding(0, 10, 150, 0)		
 		
         bottomPanel.Controls.Add(counters, 0, 0)
 
@@ -228,9 +228,9 @@ Public Class Form1
             .Width = 100,
             .Height = 60,
             .BackColor = Color.Red,
-            .Margin = New Padding(0, 0, 0, 100)
+            .Margin = New Padding(0, 0, 0, 40)
         }
-        AddHandler pnlStatus.Paint, AddressOf DrawStatusBorder
+        'AddHandler pnlStatus.Paint, AddressOf DrawStatusBorder
 
         btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
         btnStop = New Button With {.Text = "STOP", .Width = 100, .Height = 60, .Font = fnt, .Visible = False}
