@@ -298,7 +298,7 @@ Public Class Form1
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
                 End If
-				lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter 1 minute . . .  {ArticlesUrl.Count} articles "
+				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter 1 minute . . .  {ArticlesUrl.Count} articles "
             Next
         Next
 
@@ -313,9 +313,9 @@ Public Class Form1
             lblCurrentArticle.Text = "Lien de l'article : " & url
 
             If LoopCount = 1 Then
-                lblProgress.Text = $"Article {i + 1} / {ArticlesFound} (1er tour)"
+                lblProgress.Text = $"Article {i + 1} / {ArticlesFound}     (1er tour)"
             Else
-                lblProgress.Text = $"Article {i + 1} / {ArticlesFound} ({LoopCount}ème tour)"
+                lblProgress.Text = $"Article {i + 1} / {ArticlesFound}     ({LoopCount}ème tour)"
             End If
 
             TotalClicks += 1
