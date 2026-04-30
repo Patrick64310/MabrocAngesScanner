@@ -196,7 +196,7 @@ Public Class Form1
 
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red}
-        lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt}
+        lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Green}
         lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
 
@@ -243,7 +243,7 @@ Public Class Form1
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
-        actions.Padding = New Padding(0, 0, 140, 0)
+        actions.Padding = New Padding(0, 0, 70, 0)
 		
 		
         bottomPanel.Controls.Add(actions, 1, 0)
@@ -275,7 +275,7 @@ Public Class Form1
         btnStart.Visible = False
         btnStop.Visible = True
         statusTimer.Start()
-        lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter quelques secondes . . . "
+        lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter 1 minute . . . "
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -297,8 +297,8 @@ Public Class Form1
             For Each m As Match In ListingRegex.Matches(html)
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
-					lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter quelques secondes . . .  {ArticlesUrl.Count} articles "
                 End If
+				lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter 1 minute . . .  {ArticlesUrl.Count} articles "
             Next
         Next
 
