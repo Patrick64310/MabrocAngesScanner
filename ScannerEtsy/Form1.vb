@@ -66,13 +66,12 @@ Public Class Form1
         AddHandler statusTimer.Tick, AddressOf AnimateStatus
     End Sub
 
-    ' ================= ICÔNE DE LA FENÊTRE =================
+    ' ================= ICÔNE =================
     Private Sub ApplyWindowIcon()
         Try
             Dim asm = GetType(Form1).Assembly
             For Each resName In asm.GetManifestResourceNames()
-                If resName.EndsWith(".etsy.ico", StringComparison.OrdinalIgnoreCase) _
-                   OrElse resName.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
+                If resName.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) Then
                     Using s = asm.GetManifestResourceStream(resName)
                         If s IsNot Nothing Then
                             Me.Icon = New Icon(s)
@@ -82,14 +81,13 @@ Public Class Form1
                 End If
             Next
         Catch
-            ' Sécurité : ignorer si introuvable
         End Try
     End Sub
 
     ' ================= UI =================
     Private Sub InitializeUI()
 
-        ' ===== ROOT =====
+        ' ----- ROOT -----
         Dim root As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 1,
@@ -97,27 +95,24 @@ Public Class Form1
             .Padding = New Padding(10)
         }
 
-        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))        ' Header
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))     ' Separator
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))   ' Images (fixe)
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))    ' Bas
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))
+        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
 
-        ' ===== HEADER =====
+        ' ----- HEADER -----
         lblCurrentArticle = New Label With {
-            .AutoSize = False,
-            .Height = 28,
             .Width = 1050,
-            .Font = New Font("Arial", 10, FontStyle.Regular),
+            .Height = 28,
+            .Font = New Font("Arial", 10),
             .ForeColor = Color.DarkBlue,
-            .Text = "",
             .TextAlign = ContentAlignment.MiddleLeft
         }
 
         lblArticleTitle = New Label With {
-            .AutoSize = False,
-            .Height = 56,
             .Width = 1050,
-            .Font = New Font("Arial", 11, FontStyle.Regular),
+            .Height = 56,
+            .Font = New Font("Arial", 11),
             .ForeColor = Color.DarkGreen,
             .Text = "Cliquer sur START pour commencer",
             .TextAlign = ContentAlignment.MiddleLeft
@@ -125,45 +120,22 @@ Public Class Form1
 
         Dim header As New FlowLayoutPanel With {
             .AutoSize = True,
-            .FlowDirection = FlowDirection.TopDown,
-            .WrapContents = False
+            .FlowDirection = FlowDirection.TopDown
         }
         header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
+
         root.Controls.Add(header, 0, 0)
+        root.Controls.Add(New Panel With {.Height = 2, .BackColor = Color.DarkGray, .Dock = DockStyle.Fill}, 0, 1)
 
-        root.Controls.Add(New Panel With {
-            .Dock = DockStyle.Fill,
-            .Height = 2,
-            .BackColor = Color.DarkGray
-        }, 0, 1)
-
-        ' ===== IMAGES (MINIATURE | LOGO) =====
-        Dim imagesRow As New TableLayoutPanel With {
-            .ColumnCount = 2,
-            .Dock = DockStyle.Fill,
-            .Padding = New Padding(10)
-        }
+        ' ----- IMAGES -----
+        Dim imagesRow As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill}
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
 
-        picThumbnail = New PictureBox With {
-            .Width = 300,
-            .Height = 300,
-            .SizeMode = PictureBoxSizeMode.Zoom,
-            .BorderStyle = BorderStyle.FixedSingle,
-            .Anchor = AnchorStyles.None
-        }
+        picThumbnail = New PictureBox With {.Width = 300, .Height = 300, .SizeMode = PictureBoxSizeMode.Zoom, .BorderStyle = BorderStyle.FixedSingle, .Anchor = AnchorStyles.None}
+        picLogo = New PictureBox With {.Width = 300, .Height = 300, .SizeMode = PictureBoxSizeMode.Zoom, .BorderStyle = BorderStyle.FixedSingle, .Anchor = AnchorStyles.None}
 
-        picLogo = New PictureBox With {
-            .Width = 300,
-            .Height = 300,
-            .SizeMode = PictureBoxSizeMode.Zoom,
-            .BorderStyle = BorderStyle.FixedSingle,
-            .Anchor = AnchorStyles.None
-        }
-
-        ' Chargement robuste du logo embarqué
         For Each r In GetType(Form1).Assembly.GetManifestResourceNames()
             If r.EndsWith(".logo.png", StringComparison.OrdinalIgnoreCase) Then
                 Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
@@ -177,54 +149,33 @@ Public Class Form1
         imagesRow.Controls.Add(picLogo, 1, 0)
         root.Controls.Add(imagesRow, 0, 2)
 
-        ' ===== BAS : GAUCHE (COMPTEURS) / DROITE (ACTIONS) =====
-        Dim bottomPanel As New TableLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .ColumnCount = 2,
-            .Padding = New Padding(10)
-        }
+        ' ----- BAS -----
+        Dim bottomPanel As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill, .Padding = New Padding(10)}
         bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30))
         bottomPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70))
 
-        ' --- Compteurs (gauche)
-        Dim counters As New FlowLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .FlowDirection = FlowDirection.TopDown
-        }
+        Dim counters As New FlowLayoutPanel With {.FlowDirection = FlowDirection.TopDown}
 
         Dim fnt As New Font("Arial", 14, FontStyle.Bold)
 
+        lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue, .Margin = New Padding(0, 0, 0, 10)}
+        lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red, .Margin = New Padding(0, 0, 0, 10)}
+        lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt, .Margin = New Padding(0, 0, 0, 10)}
+        lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt, .Margin = New Padding(0, 0, 0, 10)}
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
-        lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red}
-        lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt}
-        lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
-        lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
 
         counters.Controls.Add(lblTime)
-		lblTime.Margin     = New Padding(0, 0, 0, 10)
         counters.Controls.Add(lblClicks)
-		lblClicks.Margin   = New Padding(0, 0, 0, 10)		
         counters.Controls.Add(lblArticles)
-		lblArticles.Margin = New Padding(0, 0, 0, 10)
         counters.Controls.Add(lblDead)
-		lblDead.Margin     = New Padding(0, 0, 0, 10)
         counters.Controls.Add(lblProgress)
-				
-		
+
         bottomPanel.Controls.Add(counters, 0, 0)
 
-        ' --- Actions (droite, bas)
-        Dim actions As New FlowLayoutPanel With {
-            .FlowDirection = FlowDirection.TopDown,
-            .Dock = DockStyle.Bottom,
-            .Anchor = AnchorStyles.Bottom Or AnchorStyles.Right
-        }
+        Dim actions As New FlowLayoutPanel With {.FlowDirection = FlowDirection.TopDown, .Dock = DockStyle.Bottom}
+        actions.Padding = New Padding(0, 0, 60, 0)
 
-        pnlStatus = New Panel With {
-            .Width = .Height = 60,
-            .BackColor = Color.Red,
-            .Margin = New Padding(0, 0, 0, 60)
-        }
+        pnlStatus = New Panel With {.Width = 60, .Height = 60, .BackColor = Color.Red, .Margin = New Padding(0, 0, 0, 60)}
 
         btnStart = New Button With {.Text = "START", .Width = 160, .Height = 60, .Font = fnt}
         btnStop = New Button With {.Text = "STOP", .Width = 160, .Height = 60, .Font = fnt, .Visible = False}
@@ -235,8 +186,7 @@ Public Class Form1
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
-        actions.Padding = New Padding(0, 0, 60, 0)
-		
+
         bottomPanel.Controls.Add(actions, 1, 0)
         root.Controls.Add(bottomPanel, 0, 3)
 
@@ -248,25 +198,26 @@ Public Class Form1
         Me.Controls.Add(webArticle)
     End Sub
 
-    ' ===== ANIMATION DU VOYANT (FADE VERT) =====
+    ' ========= VOYANT =========
     Private Sub AnimateStatus(sender As Object, e As EventArgs)
         If Not Running Then Exit Sub
 
         fadeValue += fadeDir * 8
-        If fadeValue >= 255 Then fadeValue = 255 : fadeDir = -1
-        If fadeValue <= 80 Then fadeValue = 80 : fadeDir = 1
+        If fadeValue >= 255 Then fadeDir = -1
+        If fadeValue <= 80 Then fadeDir = 1
 
         pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
     End Sub
 
-    ' ================= START =================
+    ' ========= START =========
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
 
         Running = True
         btnStart.Visible = False
         btnStop.Visible = True
         statusTimer.Start()
-        lblArticleTitle.Text = "Recherche en cours..."
+        lblArticleTitle.Text = "Recherche en cours…"
+
         ArticlesUrl.Clear()
         TotalClicks = 0
         DeadLinks = 0
@@ -293,14 +244,19 @@ Public Class Form1
         LoopStartTime = DateTime.Now
         uiTimer.Start()
 
-        Dim rnd As New Random()
         Dim i As Integer = 0
+        Dim rnd As New Random()
 
         While Running
             Dim url = ArticlesUrl(i)
             lblCurrentArticle.Text = "Lien de l'article : " & url
-            if {LoopCount} = 1 then lblProgress.Text = $"Article {i + 1} / {ArticlesFound} ( {LoopCount}er tour)"
-			if {LoopCount} > 1 then lblProgress.Text = $"Article {i + 1} / {ArticlesFound} ( {LoopCount}ème tour)"
+
+            If LoopCount = 1 Then
+                lblProgress.Text = $"Article {i + 1} / {ArticlesFound} (1er tour)"
+            Else
+                lblProgress.Text = $"Article {i + 1} / {ArticlesFound} ({LoopCount}ème tour)"
+            End If
+
             TotalClicks += 1
 
             Try
@@ -314,6 +270,7 @@ Public Class Form1
                     "document.querySelector('meta[property=""og:image""]')?.content")
                 img = img.Replace("""", "")
                 If img.StartsWith("http") Then picThumbnail.LoadAsync(img)
+
             Catch
                 DeadLinks += 1
             End Try
@@ -324,7 +281,7 @@ Public Class Form1
         End While
     End Sub
 
-    ' ================= STOP =================
+    ' ========= STOP =========
     Private Sub StopProcess(sender As Object, e As EventArgs)
         Running = False
         btnStart.Visible = True
@@ -333,11 +290,11 @@ Public Class Form1
         pnlStatus.BackColor = Color.Red
         uiTimer.Stop()
         picThumbnail.Image = Nothing
-        lblArticleTitle.Text = ""   
-        lblCurrentArticle.Text = ""                                                                                                
+        lblArticleTitle.Text = ""
+        lblCurrentArticle.Text = ""
     End Sub
 
-    ' ================= UI TIMER =================
+    ' ========= UI =========
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblClicks.Text = $"Clics cumulés :    {TotalClicks}"
         lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
@@ -346,3 +303,4 @@ Public Class Form1
     End Sub
 
 End Class
+``
