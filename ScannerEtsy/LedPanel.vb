@@ -14,7 +14,7 @@ Public Class LedPanel
 
 
     Public Sub New()
-        Me.Size = New Size(80, 80)
+        Me.Size = New Size(70, 70)
         Me.BackColor = Color.Black
         Me.DoubleBuffered = True
     
