@@ -225,7 +225,7 @@ Public Class Form1
 
         ' Voyant
 		pnlStatus = New LedPanel With {
-		    .Margin = New Padding(0, 0, 0, 40)
+		    .Margin = New Padding(40, 0, 0, 40)
 		}
 
         btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
