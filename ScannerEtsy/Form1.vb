@@ -220,12 +220,12 @@ Public Class Form1
             .WrapContents = False,
             .AutoSize = False,
             .MinimumSize = New Size(160, 0),
-            .Padding = New Padding(230, 10, 10, 10)
+            .Padding = New Padding(230, 10, 10, 20)
         }
 
         ' Voyant
 		pnlStatus = New LedPanel With {
-		    .Margin = New Padding(10, 0, 0, 40)
+		    .Margin = New Padding(20, 0, 0, 40)
 		}
 
         btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
