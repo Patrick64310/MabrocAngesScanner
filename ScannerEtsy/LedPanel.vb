@@ -99,4 +99,18 @@ Public Class LedPanel
             g.DrawEllipse(pen, metalRect)
         End Using
     End Sub
+
+
+Public Sub StartLed(color As Color)
+    LedColor = color
+    pulseTimer.Start()
+    Me.Invalidate()
+End Sub
+
+Public Sub StopLed(color As Color)
+    LedColor = color
+    pulseTimer.Stop()
+    Me.Invalidate()
+End Sub      
+                
 End Class
