@@ -225,7 +225,7 @@ Public Class Form1
 
         ' Voyant
 		pnlStatus = New LedPanel With {
-		    .Margin = New Padding(40, 0, 0, 40)
+		    .Margin = New Padding(10, 0, 0, 40)
 		}
 
         btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
@@ -333,7 +333,7 @@ Public Class Form1
 
         For page = 1 To 10
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
-            Await Task.Delay(2600)
+            Await Task.Delay(3300)
 
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
