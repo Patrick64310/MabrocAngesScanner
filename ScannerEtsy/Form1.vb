@@ -35,7 +35,7 @@ Public Class Form1
 
     Private btnStart As Button
     Private btnStop As Button
-    Private pnlStatus As Panel
+    Private pnlStatus As LedPanel
 
     Private picThumbnail As PictureBox
     Private picLogo As PictureBox
@@ -224,15 +224,9 @@ Public Class Form1
         }
 
         ' Voyant
-		pnlStatus = New Panel With {
-		    .Width = 60,
-		    .Height = 60,
-		    .BackColor = Color.Red,
+		pnlStatus = New LedPanel With {
 		    .Margin = New Padding(0, 0, 0, 40)
 		}
-		
-		AddHandler pnlStatus.Paint, AddressOf DrawLed
-		pnlStatus.DoubleBuffered = True
 
         btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
         btnStop = New Button With {.Text = "STOP", .Width = 100, .Height = 60, .Font = fnt, .Visible = False}
