@@ -344,6 +344,16 @@ Public Class Form1
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
 					ArticlesFound = ArticlesUrl.Count	
+						If ArticlesFound = 0 Then
+						    lblArticleTitle.Text = "Aucun article trouvé – arrêt du processus"
+						    pnlStatus.StopLed(Color.Red)
+						    Running = False
+						    btnStart.Visible = True
+						    btnStop.Visible = False
+						    uiTimer.Stop()
+						    statusTimer.Stop()
+						    Exit Sub
+						End If																							
 					lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"																								
                 End If
 				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter  . . .   {ArticlesFound} articles "
@@ -358,7 +368,10 @@ Public Class Form1
         Dim i As Integer = 0
 
         While Running
-            Dim url = ArticlesUrl(i)
+
+			If i < 0 OrElse i >= ArticlesUrl.Count Then Exit While
+			Dim url = ArticlesUrl(i)
+
             ' lblCurrentArticle.Text = "Lien de l'article : " & url
 
             If LoopCount = 1 Then
