@@ -201,13 +201,9 @@ Public Class Form1
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
 
         counters.Controls.Add(lblTime)
-		'lblTime.Margin     = New Padding(0, 0, 150, 5)
-        counters.Controls.Add(lblClicks)
-		'lblClicks.Margin   = New Padding(0, 0, 150, 5)		
+        counters.Controls.Add(lblClicks)	
         counters.Controls.Add(lblArticles)
-		'lblArticles.Margin = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblDead)
-		'lblDead.Margin     = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblProgress)
 		counters.Padding = New Padding(140, 10, 0, 0)		
 		
@@ -228,8 +224,8 @@ Public Class Form1
 		    .Margin = New Padding(20, 0, 0, 40)
 		}
 
-        btnStart = New Button With {.Text = "START", .Width = 100, .Height = 60, .Font = fnt}
-        btnStop = New Button With {.Text = "STOP", .Width = 100, .Height = 60, .Font = fnt, .Visible = False}
+        btnStart = New Button With {.Text = "START", .Width = 120, .Height = 60, .Font = fnt}
+        btnStop = New Button With {.Text = "STOP", .Width = 120, .Height = 60, .Font = fnt, .Visible = False}
 
         ' START = vert
         AddHandler btnStart.MouseEnter, Sub()
