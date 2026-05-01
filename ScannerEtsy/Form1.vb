@@ -223,7 +223,7 @@ Public Class Form1
             .Padding = New Padding(110, 10, 10, 10)
         }
 
-
+        ' Voyant
         pnlStatus = New Panel With {
             .Width = 100,
             .Height = 60,
@@ -254,8 +254,8 @@ Public Class Form1
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
 		
-		btnStart.Margin = New Padding(0, 0, 60, 0)
-		btnStop.Margin  = New Padding(0, 0, 60, 0)
+		btnStart.Margin = New Padding(0, 0, 0, 0)
+		btnStop.Margin  = New Padding(0, 0, 0, 0)
 
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
@@ -329,9 +329,11 @@ Public Class Form1
             For Each m As Match In ListingRegex.Matches(html)
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
+					ArticlesFound = ArticlesUrl.Count	
+					lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"																								
                 End If
-				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter  . . .   {ArticlesUrl.Count} articles "
-				if ArticlesUrl.Count > 0 then lblArticles.Text = $"Articles trouvés :    {ArticlesUrl.Count}"
+				lblArticleTitle.Text = $"Recherche en cours . . . Merci de patienter  . . .   {ArticlesFound} articles "
+				lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
             Next
         Next
 
