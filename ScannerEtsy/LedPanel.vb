@@ -12,18 +12,22 @@ Public Class LedPanel
 
     Public Property LedColor As Color = Color.Green
 
+
     Public Sub New()
         Me.Size = New Size(60, 60)
         Me.BackColor = Color.Black
         Me.DoubleBuffered = True
-
+    
         Me.SetStyle(ControlStyles.AllPaintingInWmPaint Or _
                     ControlStyles.OptimizedDoubleBuffer Or _
                     ControlStyles.UserPaint, True)
-
+    
+        LedColor = Color.Red      ' 🔴 LED rouge par défaut
+        pulseTimer.Stop()         ' ❌ pas d’animation au démarrage
+    
         UpdateRegion()
-        pulseTimer.Start()
     End Sub
+
 
     Protected Overrides Sub OnResize(e As EventArgs)
         MyBase.OnResize(e)
