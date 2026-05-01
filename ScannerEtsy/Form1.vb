@@ -4,6 +4,9 @@ Imports System.Text.RegularExpressions
 Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
 
+Private trayIcon As NotifyIcon
+Private trayMenu As ContextMenuStrip
+
 Public Class Form1
     Inherits Form
 
@@ -49,7 +52,61 @@ Public Class Form1
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
+
+	Protected Overrides Sub OnShown(e As EventArgs)
+	    MyBase.OnShown(e)
+	
+	    ' Démarrage automatique
+	    StartAsync(Me, EventArgs.Empty)
+	
+	    ' Optionnel : masquer la fenêtre
+	    Me.Hide()
+	End Sub
+
+	
+	Private Sub TrayItemClicked(sender As Object, e As ToolStripItemClickedEventArgs)
+	
+	    Select Case e.ClickedItem.Name
+	
+	        Case "Show"
+	            Me.Show()
+	            Me.WindowState = FormWindowState.Normal
+	            Me.ShowInTaskbar = True
+	
+	        Case "Stop"
+	            StopProcess(Me, EventArgs.Empty)
+	
+	        Case "Exit"
+	            trayIcon.Visible = False
+	            Application.Exit()
+	    End Select
+	End Sub
+
+	
+	Private Sub InitializeTrayIcon()
+	
+	    trayMenu = New ContextMenuStrip()
+	
+	    trayMenu.Items.Add("Afficher").Name = "Show"
+	    trayMenu.Items.Add("Stop").Name = "Stop"
+	    trayMenu.Items.Add("Quitter").Name = "Exit"
+	
+	    AddHandler trayMenu.ItemClicked, AddressOf TrayItemClicked
+	
+	    trayIcon = New NotifyIcon With {
+	        .Icon = Me.Icon, ' réutilise ton icône existante
+	        .Text = "Scanner Etsy – Mabroc'Anges",
+	        .Visible = True,
+	        .ContextMenuStrip = trayMenu
+	    }
+	End Sub
+
+	
     Public Sub New()
+
+		Me.ShowInTaskbar = False
+		Me.WindowState = FormWindowState.Minimized
+		Me.Visible = False		
         Me.Text = "Mabroc'Anges – Scanner Etsy"
         Me.Width = 1150
         Me.Height = 720
@@ -264,6 +321,9 @@ Public Class Form1
         webArticle = New WebView2 With {.Visible = False}
         Me.Controls.Add(webPages)
         Me.Controls.Add(webArticle)
+
+	InitializeTrayIcon()																							
+																								
     End Sub
 
 	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
