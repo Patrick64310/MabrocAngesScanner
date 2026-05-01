@@ -201,15 +201,15 @@ Public Class Form1
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
 
         counters.Controls.Add(lblTime)
-		lblTime.Margin     = New Padding(0, 0, 150, 5)
+		'lblTime.Margin     = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblClicks)
-		lblClicks.Margin   = New Padding(0, 0, 150, 5)		
+		'lblClicks.Margin   = New Padding(0, 0, 150, 5)		
         counters.Controls.Add(lblArticles)
-		lblArticles.Margin = New Padding(0, 0, 150, 5)
+		'lblArticles.Margin = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblDead)
-		lblDead.Margin     = New Padding(0, 0, 150, 5)
+		'lblDead.Margin     = New Padding(0, 0, 150, 5)
         counters.Controls.Add(lblProgress)
-		counters.Padding = New Padding(0, 10, 150, 0)		
+		counters.Padding = New Padding(140, 10, 0, 0)		
 		
         bottomPanel.Controls.Add(counters, 0, 0)
 
@@ -220,7 +220,7 @@ Public Class Form1
             .WrapContents = False,
             .AutoSize = False,
             .MinimumSize = New Size(160, 0),
-            .Padding = New Padding(110, 10, 10, 10)
+            .Padding = New Padding(260, 10, 10, 10)
         }
 
         ' Voyant
