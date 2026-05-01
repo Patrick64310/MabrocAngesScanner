@@ -317,6 +317,7 @@ Public Class Form1
         Running = True
         btnStart.Visible = False
         btnStop.Visible = True
+		pnlStatus.StartLed(Color.Green)																									
         statusTimer.Start()
         lblArticleTitle.Text = "Recherche en cours . . . Merci de patienter  . . . "
         ArticlesUrl.Clear()
@@ -395,7 +396,7 @@ Public Class Form1
         btnStart.Visible = True
         btnStop.Visible = False
         statusTimer.Stop()
-        pnlStatus.BackColor = Color.Red
+        pnlStatus.StopLed(Color.Red)
         uiTimer.Stop()
         picThumbnail.Image = Nothing
         lblArticleTitle.Text = ""   
