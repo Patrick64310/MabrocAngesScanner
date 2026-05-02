@@ -35,6 +35,9 @@ Public Class Form1
     Private picLogo As PictureBox
     Private webPages As WebView2
     Private webArticle As WebView2
+    Private trayIconRun As Icon
+    Private trayIconStop As Icon
+
     ' ========= REGEX =========
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
@@ -48,6 +51,20 @@ Public Class Form1
 	    Me.Hide()
 	End Sub
 
+
+	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
+	    Dim asm = GetType(Form1).Assembly
+	    For Each res In asm.GetManifestResourceNames()
+	        If res.EndsWith(endsWithName, StringComparison.OrdinalIgnoreCase) Then
+	            Using s = asm.GetManifestResourceStream(res)
+	                Return New Icon(s)
+	            End Using
+	        End If
+	    Next
+	    Return Nothing
+	End Function
+
+	
 	Private Sub TrayItemClicked(sender As Object, e As ToolStripItemClickedEventArgs)
 	    Select Case e.ClickedItem.Name
 	        Case "Show"
@@ -63,17 +80,20 @@ Public Class Form1
 	End Sub
 
 	Private Sub InitializeTrayIcon()
-	    trayMenu = New ContextMenuStrip()
-	    trayMenu.Items.Add("Afficher").Name = "Show"
-	    trayMenu.Items.Add("Stop").Name = "Stop"
-	    trayMenu.Items.Add("Quitter").Name = "Exit"
-	    AddHandler trayMenu.ItemClicked, AddressOf TrayItemClicked
-	    trayIcon = New NotifyIcon With {
-	        .Icon = Me.Icon, ' réutilise ton icône existante
-	        .Text = "Scanner Etsy – Mabroc'Anges",
-	        .Visible = True,
-	        .ContextMenuStrip = trayMenu
-	    }
+    trayIconRun = LoadEmbeddedIcon("TrayIconRUN.ico")
+    trayIconStop = LoadEmbeddedIcon("TrayIconSTOP.ico")
+    trayMenu = New ContextMenuStrip()
+    trayMenu.Items.Add("Afficher").Name = "Show"
+    trayMenu.Items.Add("Stop").Name = "Stop"
+    trayMenu.Items.Add("Quitter").Name = "Exit"
+    AddHandler trayMenu.ItemClicked, AddressOf TrayItemClicked
+
+    trayIcon = New NotifyIcon With {
+        .Icon = trayIconStop, ' 🔴 arrêté par défaut
+        .Text = "Scanner Etsy – Arrêté",
+        .Visible = True,
+        .ContextMenuStrip = trayMenu
+    }
 	End Sub
 
     Public Sub New()
@@ -304,6 +324,8 @@ Public Class Form1
 
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
+		trayIcon.Icon = trayIconRun
+		trayIcon.Text = "Scanner Etsy – En cours																						
         Running = True
         btnStart.Visible = False
         btnStop.Visible = True
@@ -377,7 +399,9 @@ Public Class Form1
     End Sub
 
     ' ================= STOP =================
-    Private Sub StopProcess(sender As Object, e As EventArgs)
+    Private Sub StopProcess(sender As Object, e As EventArgs)																												
+		trayIcon.Icon = trayIconStop
+		trayIcon.Text = "Scanner Etsy – Arrêté"
         Running = False
         btnStart.Visible = True
         btnStop.Visible = False
