@@ -5,23 +5,6 @@ Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
 Imports System.Runtime.InteropServices
 
-
-Private Const MF_SEPARATOR As Integer = &H800
-Private Const MF_STRING As Integer = &H0
-Private Const WM_SYSCOMMAND As Integer = &H112
-
-Private Const IDM_HIDE As Integer = &H1001
-Private Const IDM_MINIMIZE As Integer = &H1002
-
-<DllImport("user32.dll")>
-Private Shared Function GetSystemMenu(hWnd As IntPtr, bRevert As Boolean) As IntPtr
-End Function
-
-<DllImport("user32.dll")>
-Private Shared Function AppendMenu(hMenu As IntPtr, uFlags As Integer, uIDNewItem As Integer, lpNewItem As String) As Boolean
-End Function
-
-
 Public Class Form1
     Inherits Form
     ' ========= DONNÉES =========
@@ -54,7 +37,20 @@ Public Class Form1
     Private webArticle As WebView2
     Private trayIconRun As Icon
     Private trayIconStop As Icon
-
+	Private Const MF_SEPARATOR As Integer = &H800
+	Private Const MF_STRING As Integer = &H0
+	Private Const WM_SYSCOMMAND As Integer = &H112
+	
+	Private Const IDM_HIDE As Integer = &H1001
+	Private Const IDM_MINIMIZE As Integer = &H1002
+	
+	<DllImport("user32.dll")>
+	Private Shared Function GetSystemMenu(hWnd As IntPtr, bRevert As Boolean) As IntPtr
+	End Function
+	
+	<DllImport("user32.dll")>
+	Private Shared Function AppendMenu(hMenu As IntPtr, uFlags As Integer, uIDNewItem As Integer, lpNewItem As String) As Boolean
+	End Function
     ' ========= REGEX =========
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
