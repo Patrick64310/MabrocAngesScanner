@@ -45,14 +45,13 @@ Public Class Form1
 
 	Protected Overrides Sub OnShown(e As EventArgs)
     MyBase.OnShown(e)
-    ' Laisser WinForms créer le handle
+    ' Démarrage automatique une fois le handle créé
+    StartAsync(Me, EventArgs.Empty)
+
+    ' Headless visuel après coup
     Me.WindowState = FormWindowState.Minimized
     Me.ShowInTaskbar = False
-    ' Lancer la routine APRÈS création du handle
-    Me.BeginInvoke(Sub()
-                       StartAsync(Me, EventArgs.Empty)
-                       Me.Hide()
-                   End Sub)
+    Me.Hide()
 	End Sub
 
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
