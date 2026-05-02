@@ -7,6 +7,19 @@ Imports System.Runtime.InteropServices
 
 Public Class Form1
     Inherits Form
+
+    ' ===== Gestion fermeture fenêtre (Cacher / Réduire) =====
+    Private Enum CloseBehavior
+        Minimize
+        HideToTray
+    End Enum
+
+    Private userCloseBehavior As CloseBehavior = CloseBehavior.HideToTray
+    Private hasBeenShownOnce As Boolean = False
+
+    ' ========= DONNÉES =========
+    Private ArticlesUrl As New List(Of String)
+
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
 	Private trayIcon As NotifyIcon
