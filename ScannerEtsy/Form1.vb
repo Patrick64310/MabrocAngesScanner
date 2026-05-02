@@ -133,6 +133,23 @@ Public Class Form1
         End Try
     End Sub
 
+
+	Private Sub UpdateTrayTooltip()
+	    If trayIcon Is Nothing Then Exit Sub
+	    Dim stateText As String = If(Running, "EN COURS", "ARRETE")
+	    Dim tooltip As String =
+	        $"Etat : {stateText}" & vbCrLf &
+	        $"Articles : {ArticlesFound}" & vbCrLf &
+	        $"Clics : {TotalClicks}" & vbCrLf &
+	        $"Morts : {DeadLinks}" & vbCrLf &
+	        $"Temps : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
+	    ' Windows limite la longueur, on sécurise
+	    If tooltip.Length > 120 Then
+	        tooltip = tooltip.Substring(0, 120)
+	    End If
+	    trayIcon.Text = tooltip
+	End Sub
+
     ' ================= UI =================
     Private Sub InitializeUI()
         ' ===== ROOT =====
@@ -332,6 +349,7 @@ Public Class Form1
 		End If																		
 		trayIcon.Text = "Scanner Etsy – En cours"																						
         Running = True
+		UpdateTrayTooltip()																								
         btnStart.Visible = False
         btnStop.Visible = True
 		pnlStatus.StartLed(Color.Green)																									
@@ -413,6 +431,7 @@ Public Class Form1
 		End If																						
 		trayIcon.Text = "Scanner Etsy – Arrêté"
         Running = False
+		UpdateTrayTooltip()																											
         btnStart.Visible = True
         btnStop.Visible = False
         statusTimer.Stop()
@@ -429,6 +448,7 @@ Public Class Form1
         lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
         lblDead.Text = $"Liens morts :    {DeadLinks}"
         lblTime.Text = $"Temps activité :    {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
+		UpdateTrayTooltip()																											
     End Sub
 
 End Class
