@@ -98,9 +98,9 @@ Public Class Form1
 	End Sub
 
     Public Sub New()
-		'Me.ShowInTaskbar = False
-		'Me.WindowState = FormWindowState.Minimized
-		'Me.Visible = False		
+		Me.ShowInTaskbar = False
+		Me.WindowState = FormWindowState.Minimized
+		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
         Me.Height = 720
