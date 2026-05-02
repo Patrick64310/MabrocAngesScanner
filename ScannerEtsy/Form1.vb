@@ -325,7 +325,7 @@ Public Class Form1
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
 		trayIcon.Icon = trayIconRun
-		trayIcon.Text = "Scanner Etsy – En cours																						
+		trayIcon.Text = "Scanner Etsy – En cours"																						
         Running = True
         btnStart.Visible = False
         btnStop.Visible = True
