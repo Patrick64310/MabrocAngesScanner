@@ -6,7 +6,6 @@ Imports Microsoft.Web.WebView2.WinForms
 
 Public Class Form1
     Inherits Form
-
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
 	Private trayIcon As NotifyIcon
@@ -90,7 +89,7 @@ Public Class Form1
     AddHandler trayMenu.ItemClicked, AddressOf TrayItemClicked
 
     trayIcon = New NotifyIcon With {
-        .Icon = trayIconStop, ' 🔴 arrêté par défaut
+        .Icon = TrayIconSTOP, ' 🔴 arrêté par défaut
         .Text = "Scanner Etsy – Arrêté",
         .Visible = True,
         .ContextMenuStrip = trayMenu
