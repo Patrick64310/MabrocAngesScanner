@@ -108,7 +108,7 @@ Public Class Form1
         uiTimer = New Timer() With {.Interval = 1000}
         AddHandler uiTimer.Tick, AddressOf UpdateUI
         statusTimer = New Timer() With {.Interval = 60}
-        AddHandler statusTimer.Tick, AddressOf AnimateStatus
+        'AddHandler statusTimer.Tick, AddressOf AnimateStatus
     End Sub
 
     ' ================= ICÔNE DE LA FENÊTRE =================
