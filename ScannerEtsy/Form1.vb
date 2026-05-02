@@ -325,7 +325,12 @@ Public Class Form1
 
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
-		trayIcon.Icon = trayIconRun
+		'trayIcon.Icon = trayIconRun
+		If trayIconRun IsNot Nothing Then
+		    trayIcon.Icon = trayIconRun
+		Else
+		    trayIcon.Icon = Me.Icon   ' fallback sécurisé
+		End If																		
 		trayIcon.Text = "Scanner Etsy – En cours"																						
         Running = True
         btnStart.Visible = False
@@ -401,7 +406,12 @@ Public Class Form1
 
     ' ================= STOP =================
     Private Sub StopProcess(sender As Object, e As EventArgs)																												
-		trayIcon.Icon = trayIconStop
+		'trayIcon.Icon = trayIconStop
+		If trayIconStop IsNot Nothing Then
+		    trayIcon.Icon = trayIconStop
+		Else
+		    trayIcon.Icon = Me.Icon
+		End If																						
 		trayIcon.Text = "Scanner Etsy – Arrêté"
         Running = False
         btnStart.Visible = True
