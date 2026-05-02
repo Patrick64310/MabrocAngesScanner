@@ -17,8 +17,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets\logo.png" />
     <EmbeddedResource Include="Assets\Etsy.ico" />
-    <EmbeddedResource Include="TrayIconRUN.ico" />
-    <EmbeddedResource Include="TrayIconSTOP.ico" />
+    <EmbeddedResource Include="Assets\TrayIconRUN.ico" />
+    <EmbeddedResource Include="Assets\TrayIconSTOP.ico" />
   </ItemGroup>
 
   <!-- ✅ DÉPENDANCE WEBVIEW2 OBLIGATOIRE -->
