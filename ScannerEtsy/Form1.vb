@@ -44,11 +44,15 @@ Public Class Form1
         RegexOptions.IgnoreCase)
 
 	Protected Overrides Sub OnShown(e As EventArgs)
-	    MyBase.OnShown(e)
-	    ' Démarrage automatique
-	    StartAsync(Me, EventArgs.Empty)
-	    ' Optionnel : masquer la fenêtre
-	    Me.Hide()
+    MyBase.OnShown(e)
+    ' Laisser WinForms créer le handle
+    Me.WindowState = FormWindowState.Minimized
+    Me.ShowInTaskbar = False
+    ' Lancer la routine APRÈS création du handle
+    Me.BeginInvoke(Sub()
+                       StartAsync(Me, EventArgs.Empty)
+                       Me.Hide()
+                   End Sub)
 	End Sub
 
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
@@ -95,9 +99,9 @@ Public Class Form1
 	End Sub
 
     Public Sub New()
-		Me.ShowInTaskbar = False
-		Me.WindowState = FormWindowState.Minimized
-		Me.Visible = False		
+		'Me.ShowInTaskbar = False
+		'Me.WindowState = FormWindowState.Minimized
+		'Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
         Me.Height = 720
