@@ -100,7 +100,7 @@ Public Class Form1
 		Me.ShowInTaskbar = False
 		Me.WindowState = FormWindowState.Minimized
 		Me.Visible = False		
-        Me.Text = "Mabroc'Anges – Scanner Etsy"
+        Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
         Me.Height = 720
         Me.StartPosition = FormStartPosition.CenterScreen
@@ -351,7 +351,7 @@ Public Class Form1
                     ArticlesUrl.Add(m.Value)
 					ArticlesFound = ArticlesUrl.Count	
 						If ArticlesFound = 0 Then
-						    lblArticleTitle.Text = "Aucun article trouvé – arrêt du processus"
+						    lblArticleTitle.Text = "Aucun article trouvé - arrêt du processus"
 						    pnlStatus.StopLed(Color.Red)
 						    Running = False
 						    btnStart.Visible = True
