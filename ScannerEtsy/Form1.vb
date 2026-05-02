@@ -16,11 +16,6 @@ Public Class Form1
 
     Private userCloseBehavior As CloseBehavior = CloseBehavior.HideToTray
     Private hasBeenShownOnce As Boolean = False
-
-    ' ========= DONNÉES =========
-    Private ArticlesUrl As New List(Of String)
-
-    ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
 	Private trayIcon As NotifyIcon
     Private trayMenu As ContextMenuStrip
