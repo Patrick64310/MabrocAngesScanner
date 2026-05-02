@@ -51,7 +51,6 @@ Public Class Form1
 	    Me.Hide()
 	End Sub
 
-
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
 	    Dim asm = GetType(Form1).Assembly
 	    For Each res In asm.GetManifestResourceNames()
@@ -64,7 +63,6 @@ Public Class Form1
 	    Return Nothing
 	End Function
 
-	
 	Private Sub TrayItemClicked(sender As Object, e As ToolStripItemClickedEventArgs)
 	    Select Case e.ClickedItem.Name
 	        Case "Show"
@@ -313,14 +311,14 @@ Public Class Form1
 	End Sub
                                                                           
     ' ===== ANIMATION DU VOYANT (FADE VERT) =====
-    Private Sub AnimateStatus(sender As Object, e As EventArgs)
-        If Not Running Then Exit Sub
-        fadeValue += fadeDir * 8
-        If fadeValue >= 255 Then fadeValue = 255 : fadeDir = -1
-        If fadeValue <= 80 Then fadeValue = 80 : fadeDir = 1
-        pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
-		pnlStatus.Invalidate()																									
-    End Sub
+    'Private Sub AnimateStatus(sender As Object, e As EventArgs)
+    '    If Not Running Then Exit Sub
+    '    fadeValue += fadeDir * 8
+    '    If fadeValue >= 255 Then fadeValue = 255 : fadeDir = -1
+    '    If fadeValue <= 80 Then fadeValue = 80 : fadeDir = 1
+    '    pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
+	'	pnlStatus.Invalidate()																									
+    'End Sub
 
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
