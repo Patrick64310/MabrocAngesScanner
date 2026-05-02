@@ -3,6 +3,24 @@ Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
 Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
+Imports System.Runtime.InteropServices
+
+
+Private Const MF_SEPARATOR As Integer = &H800
+Private Const MF_STRING As Integer = &H0
+Private Const WM_SYSCOMMAND As Integer = &H112
+
+Private Const IDM_HIDE As Integer = &H1001
+Private Const IDM_MINIMIZE As Integer = &H1002
+
+<DllImport("user32.dll")>
+Private Shared Function GetSystemMenu(hWnd As IntPtr, bRevert As Boolean) As IntPtr
+End Function
+
+<DllImport("user32.dll")>
+Private Shared Function AppendMenu(hMenu As IntPtr, uFlags As Integer, uIDNewItem As Integer, lpNewItem As String) As Boolean
+End Function
+
 
 Public Class Form1
     Inherits Form
@@ -51,6 +69,51 @@ Public Class Form1
     Me.WindowState = FormWindowState.Minimized
     Me.ShowInTaskbar = False
     Me.Hide()
+    If Not hasBeenShownOnce Then
+        hasBeenShownOnce = True
+        AddCustomSystemMenu()
+    End If
+	End Sub
+
+	Protected Overrides Sub WndProc(ByRef m As Message)
+	    If m.Msg = WM_SYSCOMMAND Then
+	        Select Case m.WParam.ToInt32()
+	            Case IDM_HIDE
+	                userCloseBehavior = CloseBehavior.HideToTray
+	                trayIcon.ShowBalloonTip(1000, "Mode fenetre",
+	                                         "La fenetre sera cachee dans le Tray",
+	                                         ToolTipIcon.Info)
+	                Return
+	            Case IDM_MINIMIZE
+	                userCloseBehavior = CloseBehavior.Minimize
+	                trayIcon.ShowBalloonTip(1000, "Mode fenetre",
+	                                         "La fenetre sera reduite",
+	                                         ToolTipIcon.Info)
+	                Return
+	        End Select
+	    End If
+	    MyBase.WndProc(m)
+	End Sub
+
+	Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
+	    MyBase.OnFormClosing(e)
+	    If e.CloseReason = CloseReason.UserClosing Then
+	        e.Cancel = True
+	        Select Case userCloseBehavior
+	            Case CloseBehavior.HideToTray
+	                Me.Hide()
+	                Me.ShowInTaskbar = False
+	            Case CloseBehavior.Minimize
+	                Me.WindowState = FormWindowState.Minimized
+	        End Select
+	    End If
+	End Sub
+
+	Private Sub AddCustomSystemMenu()
+	    Dim hMenu = GetSystemMenu(Me.Handle, False)
+	    AppendMenu(hMenu, MF_SEPARATOR, 0, String.Empty)
+	    AppendMenu(hMenu, MF_STRING, IDM_HIDE, "Au clic fermeture : Cacher dans le Tray")
+	    AppendMenu(hMenu, MF_STRING, IDM_MINIMIZE, "Au clic fermeture : Reduire la fenetre")
 	End Sub
 
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
