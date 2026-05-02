@@ -4,30 +4,23 @@ Imports System.Text.RegularExpressions
 Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
 
-Private trayIcon As NotifyIcon
-Private trayMenu As ContextMenuStrip
-
 Public Class Form1
     Inherits Form
 
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
-
-    ' ========= ÉTAT =========
+	Private trayIcon As NotifyIcon
+    Private trayMenu As ContextMenuStrip
     Private Running As Boolean
     Private TotalClicks As Integer
     Private ArticlesFound As Integer
     Private DeadLinks As Integer
     Private LoopCount As Integer = 1
-
-    ' ========= TEMPS =========
     Private LoopStartTime As DateTime
     Private uiTimer As Timer
     Private statusTimer As Timer
     Private fadeValue As Integer = 80
     Private fadeDir As Integer = 1
-
-    ' ========= UI =========
     Private lblCurrentArticle As Label
     Private lblArticleTitle As Label
     Private lblProgress As Label
@@ -35,64 +28,46 @@ Public Class Form1
     Private lblArticles As Label
     Private lblDead As Label
     Private lblTime As Label
-
     Private btnStart As Button
     Private btnStop As Button
     Private pnlStatus As LedPanel
-
     Private picThumbnail As PictureBox
     Private picLogo As PictureBox
-
-    ' ========= WEBVIEW =========
     Private webPages As WebView2
     Private webArticle As WebView2
-
     ' ========= REGEX =========
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
-
 	Protected Overrides Sub OnShown(e As EventArgs)
 	    MyBase.OnShown(e)
-	
 	    ' Démarrage automatique
 	    StartAsync(Me, EventArgs.Empty)
-	
 	    ' Optionnel : masquer la fenêtre
 	    Me.Hide()
 	End Sub
 
-	
 	Private Sub TrayItemClicked(sender As Object, e As ToolStripItemClickedEventArgs)
-	
 	    Select Case e.ClickedItem.Name
-	
 	        Case "Show"
 	            Me.Show()
 	            Me.WindowState = FormWindowState.Normal
 	            Me.ShowInTaskbar = True
-	
 	        Case "Stop"
 	            StopProcess(Me, EventArgs.Empty)
-	
 	        Case "Exit"
 	            trayIcon.Visible = False
 	            Application.Exit()
 	    End Select
 	End Sub
 
-	
 	Private Sub InitializeTrayIcon()
-	
 	    trayMenu = New ContextMenuStrip()
-	
 	    trayMenu.Items.Add("Afficher").Name = "Show"
 	    trayMenu.Items.Add("Stop").Name = "Stop"
 	    trayMenu.Items.Add("Quitter").Name = "Exit"
-	
 	    AddHandler trayMenu.ItemClicked, AddressOf TrayItemClicked
-	
 	    trayIcon = New NotifyIcon With {
 	        .Icon = Me.Icon, ' réutilise ton icône existante
 	        .Text = "Scanner Etsy – Mabroc'Anges",
@@ -101,9 +76,7 @@ Public Class Form1
 	    }
 	End Sub
 
-	
     Public Sub New()
-
 		Me.ShowInTaskbar = False
 		Me.WindowState = FormWindowState.Minimized
 		Me.Visible = False		
@@ -112,13 +85,10 @@ Public Class Form1
         Me.Height = 720
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
-
         InitializeUI()
         ApplyWindowIcon()
-
         uiTimer = New Timer() With {.Interval = 1000}
         AddHandler uiTimer.Tick, AddressOf UpdateUI
-
         statusTimer = New Timer() With {.Interval = 60}
         AddHandler statusTimer.Tick, AddressOf AnimateStatus
     End Sub
@@ -145,7 +115,6 @@ Public Class Form1
 
     ' ================= UI =================
     Private Sub InitializeUI()
-
         ' ===== ROOT =====
         Dim root As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
@@ -153,12 +122,10 @@ Public Class Form1
             .RowCount = 4,
             .Padding = New Padding(10)
         }
-
         root.RowStyles.Add(New RowStyle(SizeType.AutoSize))        ' Header
         root.RowStyles.Add(New RowStyle(SizeType.Absolute, 6))     ' Separator
         root.RowStyles.Add(New RowStyle(SizeType.Absolute, 320))   ' Images (fixe)
         root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))    ' Bas
-
         ' ===== HEADER =====
         lblCurrentArticle = New Label With {
             .AutoSize = False,
@@ -169,7 +136,6 @@ Public Class Form1
             .Text = "",
             .TextAlign = ContentAlignment.MiddleLeft
         }
-
         lblArticleTitle = New Label With {
             .AutoSize = False,
             .Height = 56,
@@ -179,7 +145,6 @@ Public Class Form1
             .Text = "Cliquer sur START pour commencer",
             .TextAlign = ContentAlignment.MiddleLeft
         }
-
         Dim header As New FlowLayoutPanel With {
             .AutoSize = True,
             .FlowDirection = FlowDirection.TopDown,
@@ -188,13 +153,11 @@ Public Class Form1
         header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
         root.Controls.Add(header, 0, 0)
-
         root.Controls.Add(New Panel With {
             .Dock = DockStyle.Fill,
             .Height = 2,
             .BackColor = Color.DarkGray
         }, 0, 1)
-
         ' ===== IMAGES (MINIATURE | LOGO) =====
         Dim imagesRow As New TableLayoutPanel With {
             .ColumnCount = 2,
@@ -203,7 +166,6 @@ Public Class Form1
         }
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
         imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
-
         picThumbnail = New PictureBox With {
             .Width = 300,
             .Height = 300,
@@ -211,7 +173,6 @@ Public Class Form1
             .BorderStyle = BorderStyle.FixedSingle,
             .Anchor = AnchorStyles.None
         }
-
         picLogo = New PictureBox With {
             .Width = 300,
             .Height = 300,
@@ -219,8 +180,7 @@ Public Class Form1
             .BorderStyle = BorderStyle.FixedSingle,
             .Anchor = AnchorStyles.None
         }
-
-        ' Chargement robuste du logo embarqué
+        ' Chargement du logo embarqué
         For Each r In GetType(Form1).Assembly.GetManifestResourceNames()
             If r.EndsWith(".logo.png", StringComparison.OrdinalIgnoreCase) Then
                 Using s = GetType(Form1).Assembly.GetManifestResourceStream(r)
@@ -229,7 +189,6 @@ Public Class Form1
                 Exit For
             End If
         Next
-
         imagesRow.Controls.Add(picThumbnail, 0, 0)
         imagesRow.Controls.Add(picLogo, 1, 0)
         root.Controls.Add(imagesRow, 0, 2)
@@ -250,22 +209,18 @@ Public Class Form1
         }
 
         Dim fnt As New Font("Arial", 14, FontStyle.Bold)
-
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red}
         lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Green}
         lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
-
         counters.Controls.Add(lblTime)
         counters.Controls.Add(lblClicks)	
         counters.Controls.Add(lblArticles)
         counters.Controls.Add(lblDead)
         counters.Controls.Add(lblProgress)
 		counters.Padding = New Padding(140, 10, 0, 0)		
-		
         bottomPanel.Controls.Add(counters, 0, 0)
-
         ' --- Actions (droite, bas)
         Dim actions As New FlowLayoutPanel With {
             .FlowDirection = FlowDirection.TopDown,
@@ -275,15 +230,12 @@ Public Class Form1
             .MinimumSize = New Size(160, 0),
             .Padding = New Padding(230, 10, 10, 20)
         }
-
         ' Voyant
 		pnlStatus = New LedPanel With {
 		    .Margin = New Padding(20, 0, 0, 40)
 		}
-
         btnStart = New Button With {.Text = "START", .Width = 120, .Height = 60, .Font = fnt}
         btnStop = New Button With {.Text = "STOP", .Width = 120, .Height = 60, .Font = fnt, .Visible = False}
-
         ' START = vert
         AddHandler btnStart.MouseEnter, Sub()
             btnStart.BackColor = Color.LightGreen
@@ -291,57 +243,43 @@ Public Class Form1
         AddHandler btnStart.MouseLeave, Sub()
             btnStart.BackColor = SystemColors.Control
         End Sub
-        
         ' STOP = rouge
         AddHandler btnStop.MouseEnter, Sub()
             btnStop.BackColor = Color.LightCoral
         End Sub
         AddHandler btnStop.MouseLeave, Sub()
             btnStop.BackColor = SystemColors.Control
-        End Sub
-                                                                                    
+        End Sub                                                                    
         AddHandler btnStart.Click, AddressOf StartAsync
         AddHandler btnStop.Click, AddressOf StopProcess
-		
 		btnStart.Margin = New Padding(0, 0, 0, 0)
 		btnStop.Margin  = New Padding(0, 0, 0, 0)
-
         actions.Controls.Add(pnlStatus)
         actions.Controls.Add(btnStart)
         actions.Controls.Add(btnStop)
         'actions.Padding = New Padding(0, 0, 70, 0)
-		
-		
         bottomPanel.Controls.Add(actions, 1, 0)
         root.Controls.Add(bottomPanel, 0, 3)
-
         Me.Controls.Add(root)
-
         webPages = New WebView2 With {.Visible = False}
         webArticle = New WebView2 With {.Visible = False}
         Me.Controls.Add(webPages)
         Me.Controls.Add(webArticle)
-
-	InitializeTrayIcon()																							
-																								
+	    InitializeTrayIcon()																																														
     End Sub
 
 	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
 	    Dim g = e.Graphics
 	    g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-	
 	    Dim r As Rectangle = New Rectangle(2, 2, pnlStatus.Width - 4, pnlStatus.Height - 4)
-	
 	    ' Halo externe (bord sombre)
 	    Using shadow As New SolidBrush(Color.FromArgb(40, 0, 0, 0))
 	        g.FillEllipse(shadow, r.X - 2, r.Y - 2, r.Width + 4, r.Height + 4)
 	    End Using
-	
 	    ' LED principale
 	    Using brush As New SolidBrush(pnlStatus.BackColor)
 	        g.FillEllipse(brush, r)
 	    End Using
-	
 	    ' Reflet LED (effet brillant)
 	    Using highlight As New SolidBrush(Color.FromArgb(60, 255, 255, 255))
 	        g.FillEllipse(
@@ -353,23 +291,19 @@ Public Class Form1
 	        )
 	    End Using
 	End Sub
-
-                                                                                        
+                                                                          
     ' ===== ANIMATION DU VOYANT (FADE VERT) =====
     Private Sub AnimateStatus(sender As Object, e As EventArgs)
         If Not Running Then Exit Sub
-
         fadeValue += fadeDir * 8
         If fadeValue >= 255 Then fadeValue = 255 : fadeDir = -1
         If fadeValue <= 80 Then fadeValue = 80 : fadeDir = 1
-
         pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
 		pnlStatus.Invalidate()																									
     End Sub
 
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
-
         Running = True
         btnStart.Visible = False
         btnStop.Visible = True
@@ -380,22 +314,16 @@ Public Class Form1
         TotalClicks = 0
         DeadLinks = 0
         LoopCount = 1
-
         Await webPages.EnsureCoreWebView2Async()
         Await webArticle.EnsureCoreWebView2Async()
-
         LoopStartTime = DateTime.Now
         uiTimer.Start()
-
         For page = 1 To 10
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
             Await Task.Delay(3300)
-
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
-
 			If html.Contains("Aucun article en vente pour le moment") Then Exit For
-
             For Each m As Match In ListingRegex.Matches(html)
                 If m.Value.Length < 100 AndAlso Not ArticlesUrl.Contains(m.Value) Then
                     ArticlesUrl.Add(m.Value)
@@ -416,32 +344,22 @@ Public Class Form1
 				lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
             Next
         Next
-
         ArticlesFound = ArticlesUrl.Count
-
-
         Dim rnd As New Random()
         Dim i As Integer = 0
-
         While Running
-
 			If i < 0 OrElse i >= ArticlesUrl.Count Then Exit While
 			Dim url = ArticlesUrl(i)
-
             ' lblCurrentArticle.Text = "Lien de l'article : " & url
-
             If LoopCount = 1 Then
                 lblProgress.Text = $"Article {i + 1} / {ArticlesFound}     (1er tour)"
             Else
                 lblProgress.Text = $"Article {i + 1} / {ArticlesFound}     ({LoopCount}ème tour)"
             End If
-
             TotalClicks += 1
-
             Try
                 webArticle.CoreWebView2.Navigate(url)
                 Await Task.Delay(1500)
-
                 lblArticleTitle.Text =
                     (Await webArticle.ExecuteScriptAsync("document.title")).Replace("""", "")
 				lblCurrentArticle.Text = "Lien de l'article : " & url
@@ -452,7 +370,6 @@ Public Class Form1
             Catch
                 DeadLinks += 1
             End Try
-
             Await Task.Delay(rnd.Next(2000, 9000))
             i = (i + 1) Mod ArticlesFound
             If i = 0 Then LoopCount += 1
