@@ -102,7 +102,7 @@ Public Class Form1
 		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
-        Me.Height = 640
+        Me.Height = 600
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
 		Me.FormBorderStyle = FormBorderStyle.None
@@ -133,7 +133,6 @@ Public Class Form1
             ' Sécurité : ignorer si introuvable
         End Try
     End Sub
-
 
 	Private Sub UpdateTrayTooltip()
 	    If trayIcon Is Nothing Then Exit Sub
@@ -196,13 +195,15 @@ Public Class Form1
             .BackColor = Color.DarkGray
         }, 0, 1)
         ' ===== IMAGES (MINIATURE | LOGO) =====
-        Dim imagesRow As New TableLayoutPanel With {
-            .ColumnCount = 2,
-            .Dock = DockStyle.Fill,
-            .Padding = New Padding(10)
-        }
-        imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
-        imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50))
+
+Dim imagesRow As New TableLayoutPanel With {
+    .ColumnCount = 3,
+    .Dock = DockStyle.Fill,
+    .Padding = New Padding(10)
+}
+imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 45))  ' Miniature
+imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 80)) ' LED
+imagesRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 45))  ' Logo
         picThumbnail = New PictureBox With {
             .Width = 300,
             .Height = 300,
@@ -226,8 +227,9 @@ Public Class Form1
                 Exit For
             End If
         Next
-        imagesRow.Controls.Add(picThumbnail, 0, 0)
-        imagesRow.Controls.Add(picLogo, 1, 0)
+		imagesRow.Controls.Add(picThumbnail, 0, 0)
+		imagesRow.Controls.Add(pnlStatus, 1, 0)   ' ✅ LED AU CENTRE
+		imagesRow.Controls.Add(picLogo, 2, 0)
         root.Controls.Add(imagesRow, 0, 2)
 
         ' ===== BAS : GAUCHE (COMPTEURS) / DROITE (ACTIONS) =====
@@ -265,11 +267,14 @@ Public Class Form1
             .WrapContents = False,
             .AutoSize = False,
             .MinimumSize = New Size(160, 0),
-            .Padding = New Padding(260, 10, 10, 20)
+            .Padding = New Padding(300, 0, 10, 20)
         }
         ' Voyant
 		pnlStatus = New LedPanel With {
-		    .Margin = New Padding(20, 0, 0, 40)
+		    .Width = 60,
+		    .Height = 60,
+		    .Anchor = AnchorStyles.None,
+		    .Margin = New Padding(0)
 		}
         btnStart = New Button With {.Text = "START", .Width = 120, .Height = 60, .Font = fnt}
         btnStop = New Button With {.Text = "STOP", .Width = 120, .Height = 60, .Font = fnt, .Visible = False}
