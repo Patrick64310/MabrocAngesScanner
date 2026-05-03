@@ -102,7 +102,7 @@ Public Class Form1
 		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
-        Me.Height = 700
+        Me.Height = 640
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
 		Me.FormBorderStyle = FormBorderStyle.None
@@ -265,7 +265,7 @@ Public Class Form1
             .WrapContents = False,
             .AutoSize = False,
             .MinimumSize = New Size(160, 0),
-            .Padding = New Padding(230, 10, 10, 20)
+            .Padding = New Padding(260, 10, 10, 20)
         }
         ' Voyant
 		pnlStatus = New LedPanel With {
