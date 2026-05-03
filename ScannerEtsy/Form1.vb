@@ -102,7 +102,7 @@ Public Class Form1
 		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
-        Me.Height = 700
+        Me.Height = 720
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
 		Me.FormBorderStyle = FormBorderStyle.None
@@ -134,6 +134,7 @@ Public Class Form1
         End Try
     End Sub
 
+
 	Private Sub UpdateTrayTooltip()
 	    If trayIcon Is Nothing Then Exit Sub
 	    Dim stateText As String = If(Running, "EN COURS", "ARRETE")
@@ -141,8 +142,8 @@ Public Class Form1
 	        $"Etat : {stateText}" & vbCrLf &
 	        $"Articles : {ArticlesFound}" & vbCrLf &
 	        $"Clics : {TotalClicks}" & vbCrLf &
-	        '$"Morts : {DeadLinks}" & vbCrLf &
-	        $"Durée : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
+	        $"Morts : {DeadLinks}" & vbCrLf &
+	        $"Temps : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 	    ' Windows limite la longueur, on sécurise
 	    If tooltip.Length > 120 Then
 	        tooltip = tooltip.Substring(0, 120)
@@ -166,13 +167,12 @@ Public Class Form1
         ' ===== HEADER =====
         lblCurrentArticle = New Label With {
             .AutoSize = False,
-            .Height = 20,
+            .Height = 28,
             .Width = 1050,
-            .Font = New Font("Arial", 4, FontStyle.Regular),
+            .Font = New Font("Arial", 10, FontStyle.Regular),
             .ForeColor = Color.DarkBlue,
             .Text = "",
-            .TextAlign = ContentAlignment.MiddleLeft,
-			.visible = false						
+            .TextAlign = ContentAlignment.MiddleLeft
         }
         lblArticleTitle = New Label With {
             .AutoSize = False,
@@ -193,7 +193,7 @@ Public Class Form1
         root.Controls.Add(header, 0, 0)
         root.Controls.Add(New Panel With {
             .Dock = DockStyle.Fill,
-            .Height = 4,
+            .Height = 2,
             .BackColor = Color.DarkGray
         }, 0, 1)
         ' ===== IMAGES (MINIATURE | LOGO) =====
@@ -250,12 +250,12 @@ Public Class Form1
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red}
         lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Green}
-        'lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
+        lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
         counters.Controls.Add(lblTime)
         counters.Controls.Add(lblClicks)	
         counters.Controls.Add(lblArticles)
-        'counters.Controls.Add(lblDead)
+        counters.Controls.Add(lblDead)
         counters.Controls.Add(lblProgress)
 		counters.Padding = New Padding(140, 10, 0, 0)		
         bottomPanel.Controls.Add(counters, 0, 0)
@@ -307,6 +307,40 @@ Public Class Form1
 		AddCustomTitleBar(Me)																								
     End Sub
 
+	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
+	    Dim g = e.Graphics
+	    g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+	    Dim r As Rectangle = New Rectangle(2, 2, pnlStatus.Width - 4, pnlStatus.Height - 4)
+	    ' Halo externe (bord sombre)
+	    Using shadow As New SolidBrush(Color.FromArgb(40, 0, 0, 0))
+	        g.FillEllipse(shadow, r.X - 2, r.Y - 2, r.Width + 4, r.Height + 4)
+	    End Using
+	    ' LED principale
+	    Using brush As New SolidBrush(pnlStatus.BackColor)
+	        g.FillEllipse(brush, r)
+	    End Using
+	    ' Reflet LED (effet brillant)
+	    Using highlight As New SolidBrush(Color.FromArgb(60, 255, 255, 255))
+	        g.FillEllipse(
+	            highlight,
+	            r.X + 6,
+	            r.Y + 6,
+	            r.Width \ 3,
+	            r.Height \ 3
+	        )
+	    End Using
+	End Sub
+                                                                          
+    ' ===== ANIMATION DU VOYANT (FADE VERT) =====
+    'Private Sub AnimateStatus(sender As Object, e As EventArgs)
+    '    If Not Running Then Exit Sub
+    '    fadeValue += fadeDir * 8
+    '    If fadeValue >= 255 Then fadeValue = 255 : fadeDir = -1
+    '    If fadeValue <= 80 Then fadeValue = 80 : fadeDir = 1
+    '    pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
+	'	pnlStatus.Invalidate()																									
+    'End Sub
+
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
 		'trayIcon.Icon = trayIconRun
@@ -333,7 +367,7 @@ Public Class Form1
         uiTimer.Start()
         For page = 1 To 10
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
-            Await Task.Delay(4500)
+            Await Task.Delay(3300)
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
 			If html.Contains("Aucun article en vente pour le moment") Then Exit For
@@ -381,7 +415,7 @@ Public Class Form1
                 img = img.Replace("""", "")
                 If img.StartsWith("http") Then picThumbnail.LoadAsync(img)
             Catch
-                'DeadLinks += 1
+                DeadLinks += 1
             End Try
             Await Task.Delay(rnd.Next(2000, 9000))
             i = (i + 1) Mod ArticlesFound
@@ -414,7 +448,7 @@ Public Class Form1
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblClicks.Text = $"Clics cumulés :    {TotalClicks}"
         lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
-        'lblDead.Text = $"Liens morts :    {DeadLinks}"
+        lblDead.Text = $"Liens morts :    {DeadLinks}"
         lblTime.Text = $"Temps activité :    {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 		UpdateTrayTooltip()																											
     End Sub
