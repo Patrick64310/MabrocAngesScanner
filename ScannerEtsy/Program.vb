@@ -13,13 +13,17 @@ Module Program
     <STAThread>
     Sub Main()
 
-        ' ✅ ID unique pour Windows (choisis une valeur stable)
-        SetCurrentProcessExplicitAppUserModelID("MabrocAnges.ScannerEtsy")
-        ApplicationConfiguration.Initialize()
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault(False)
 
-        Application.Run(New Form1())
+        Application.Run(New Form1()
+
+        ' ✅ ID unique pour Windows (choisis une valeur stable)
+        'SetCurrentProcessExplicitAppUserModelID("MabrocAnges.ScannerEtsy")
+        'ApplicationConfiguration.Initialize()
+        'Application.EnableVisualStyles()
+        'Application.SetCompatibleTextRenderingDefault(False)
+        'Application.Run(New Form1())
     End Sub
 
 End Module
