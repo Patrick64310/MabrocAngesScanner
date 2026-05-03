@@ -7,15 +7,13 @@ Imports System.Runtime.InteropServices
 
 Public Class Form1
     Inherits Form
-
-    ' ===== Gestion fermeture fenêtre (Cacher / Réduire) =====
-    Private Enum CloseBehavior
-        Minimize
-        HideToTray
-    End Enum
-
-    Private userCloseBehavior As CloseBehavior = CloseBehavior.HideToTray
-    Private hasBeenShownOnce As Boolean = False
+    ' ========= DONNÉES =========
+	Private Const WM_NCHITTEST As Integer = &H84
+	Private Const WM_NCLBUTTONDOWN As Integer = &HA1
+	Private Const HTCLIENT As Integer = 1
+	Private Const HTCAPTION As Integer = 2
+	Private Const HTCUSTOMBUTTON As Integer = &H8000
+	Private hideButtonRect As Rectangle
     Private ArticlesUrl As New List(Of String)
 	Private trayIcon As NotifyIcon
     Private trayMenu As ContextMenuStrip
@@ -45,20 +43,7 @@ Public Class Form1
     Private webArticle As WebView2
     Private trayIconRun As Icon
     Private trayIconStop As Icon
-	Private Const MF_SEPARATOR As Integer = &H800
-	Private Const MF_STRING As Integer = &H0
-	Private Const WM_SYSCOMMAND As Integer = &H112
-	
-	Private Const IDM_HIDE As Integer = &H1001
-	Private Const IDM_MINIMIZE As Integer = &H1002
-	
-	<DllImport("user32.dll")>
-	Private Shared Function GetSystemMenu(hWnd As IntPtr, bRevert As Boolean) As IntPtr
-	End Function
-	
-	<DllImport("user32.dll")>
-	Private Shared Function AppendMenu(hMenu As IntPtr, uFlags As Integer, uIDNewItem As Integer, lpNewItem As String) As Boolean
-	End Function
+
     ' ========= REGEX =========
     Private ListingRegex As New Regex(
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
@@ -66,60 +51,70 @@ Public Class Form1
 
 	Protected Overrides Sub OnShown(e As EventArgs)
     MyBase.OnShown(e)
-    ' Démarrage automatique une fois le handle créé
+    ' Lancer la routine
     StartAsync(Me, EventArgs.Empty)
-
-    ' Headless visuel après coup
+    ' Calcul du bouton HideToTray (à droite du bouton Fermer)
+    Dim captionHeight = SystemInformation.CaptionHeight
+    Dim buttonSize = captionHeight - 4
+    hideButtonRect = New Rectangle(
+        Me.Width - (buttonSize * 4), ' juste à gauche de ❌
+        2,
+        buttonSize,
+        buttonSize
+    )
+    ' Headless après coup
     Me.WindowState = FormWindowState.Minimized
     Me.ShowInTaskbar = False
     Me.Hide()
-    If Not hasBeenShownOnce Then
-        hasBeenShownOnce = True
-        AddCustomSystemMenu()
-    End If
 	End Sub
 
 	Protected Overrides Sub WndProc(ByRef m As Message)
-	    If m.Msg = WM_SYSCOMMAND Then
-	        Select Case m.WParam.ToInt32()
-	            Case IDM_HIDE
-	                userCloseBehavior = CloseBehavior.HideToTray
-	                trayIcon.ShowBalloonTip(1000, "Mode fenetre",
-	                                         "La fenetre sera cachee dans le Tray",
-	                                         ToolTipIcon.Info)
+	    Select Case m.Msg
+	        Case WM_NCHITTEST
+	            Dim p = Me.PointToClient(New Point(m.LParam.ToInt32()))
+	            If hideButtonRect.Contains(p) Then
+	                m.Result = CType(HTCUSTOMBUTTON, IntPtr)
 	                Return
-	            Case IDM_MINIMIZE
-	                userCloseBehavior = CloseBehavior.Minimize
-	                trayIcon.ShowBalloonTip(1000, "Mode fenetre",
-	                                         "La fenetre sera reduite",
-	                                         ToolTipIcon.Info)
+	            End If
+	        Case WM_NCLBUTTONDOWN
+	            If m.WParam.ToInt32() = HTCUSTOMBUTTON Then
+	                HideToTray()
 	                Return
-	        End Select
-	    End If
+	            End If
+			Case &H85 ' WM_NCPAINT
+			    MyBase.WndProc(m)
+			    DrawHideButton()
+			    Return
+	    End Select
 	    MyBase.WndProc(m)
 	End Sub
 
-	Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
-	    MyBase.OnFormClosing(e)
-	    If e.CloseReason = CloseReason.UserClosing Then
-	        e.Cancel = True
-	        Select Case userCloseBehavior
-	            Case CloseBehavior.HideToTray
-	                Me.Hide()
-	                Me.ShowInTaskbar = False
-	            Case CloseBehavior.Minimize
-	                Me.WindowState = FormWindowState.Minimized
-	        End Select
-	    End If
-	End Sub
+Private Sub DrawHideButton()
+    Using g = Graphics.FromHwnd(Me.Handle)
+        Using b As New SolidBrush(Color.LightGray)
+            g.FillEllipse(b, hideButtonRect)
+        End Using
+        Using pen As New Pen(Color.DimGray, 2)
+            g.DrawEllipse(pen, hideButtonRect)
+        End Using
+        Using f = New Font("Segoe UI", 10, FontStyle.Bold)
+            TextRenderer.DrawText(
+                g,
+                "◉",
+                f,
+                hideButtonRect,
+                Color.Black,
+                TextFormatFlags.HorizontalCenter Or TextFormatFlags.VerticalCenter
+            )
+        End Using
+    End Using
+End Sub
 
-	Private Sub AddCustomSystemMenu()
-	    Dim hMenu = GetSystemMenu(Me.Handle, False)
-	    AppendMenu(hMenu, MF_SEPARATOR, 0, String.Empty)
-	    AppendMenu(hMenu, MF_STRING, IDM_HIDE, "Au clic fermeture : Cacher dans le Tray")
-	    AppendMenu(hMenu, MF_STRING, IDM_MINIMIZE, "Au clic fermeture : Reduire la fenetre")
-	End Sub
-
+Private Sub HideToTray()
+    Me.Hide()
+    Me.ShowInTaskbar = False
+End Sub
+	
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
 	    Dim asm = GetType(Form1).Assembly
 	    For Each res In asm.GetManifestResourceNames()
