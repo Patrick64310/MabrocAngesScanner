@@ -15,7 +15,7 @@ Module Program
 
         ' ✅ ID unique pour Windows (choisis une valeur stable)
         SetCurrentProcessExplicitAppUserModelID("MabrocAnges.ScannerEtsy")
-
+        ApplicationConfiguration.Initialize()
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault(False)
 
