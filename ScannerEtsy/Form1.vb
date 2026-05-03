@@ -42,16 +42,22 @@ Public Class Form1
         "(https:\/\/www\.etsy\.com\/fr\/listing\/[^\?]+)",
         RegexOptions.IgnoreCase)
 
-	Protected Overrides Sub OnShown(e As EventArgs)
-    MyBase.OnShown(e)
-    ' Démarrage automatique une fois le handle créé
-    StartAsync(Me, EventArgs.Empty)
 
-    ' Headless visuel après coup
-    Me.WindowState = FormWindowState.Minimized
-    Me.ShowInTaskbar = False
-    Me.Hide()
-	End Sub
+Protected Overrides Sub OnShown(e As EventArgs)
+    MyBase.OnShown(e)
+
+    ' 1. Laisser WinForms entrer dans la boucle de messages
+    Me.BeginInvoke(Sub()
+        ' 2. Démarrer la logique métier
+        StartAsync(Me, EventArgs.Empty)
+
+        ' 3. SEULEMENT ENSUITE, cacher la fenêtre
+        Me.WindowState = FormWindowState.Minimized
+        Me.ShowInTaskbar = False
+        Me.Hide()
+    End Sub)
+End Sub
+
 
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
 	    Dim asm = GetType(Form1).Assembly
