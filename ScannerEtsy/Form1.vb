@@ -102,7 +102,7 @@ Public Class Form1
 		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
-        Me.Height = 680
+        Me.Height = 700
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
 		Me.FormBorderStyle = FormBorderStyle.None
@@ -142,7 +142,7 @@ Public Class Form1
 	        $"Articles : {ArticlesFound}" & vbCrLf &
 	        $"Clics : {TotalClicks}" & vbCrLf &
 	        '$"Morts : {DeadLinks}" & vbCrLf &
-	        $"Temps : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
+	        $"Durée : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 	    ' Windows limite la longueur, on sécurise
 	    If tooltip.Length > 120 Then
 	        tooltip = tooltip.Substring(0, 120)
@@ -166,9 +166,9 @@ Public Class Form1
         ' ===== HEADER =====
         lblCurrentArticle = New Label With {
             .AutoSize = False,
-            .Height = 28,
+            .Height = 20,
             .Width = 1050,
-            .Font = New Font("Arial", 10, FontStyle.Regular),
+            .Font = New Font("Arial", 4, FontStyle.Regular),
             .ForeColor = Color.DarkBlue,
             .Text = "",
             .TextAlign = ContentAlignment.MiddleLeft,
@@ -193,7 +193,7 @@ Public Class Form1
         root.Controls.Add(header, 0, 0)
         root.Controls.Add(New Panel With {
             .Dock = DockStyle.Fill,
-            .Height = 2,
+            .Height = 4,
             .BackColor = Color.DarkGray
         }, 0, 1)
         ' ===== IMAGES (MINIATURE | LOGO) =====
@@ -250,12 +250,12 @@ Public Class Form1
         lblProgress = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblClicks = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Red}
         lblArticles = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.Green}
-        lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
+        'lblDead = New Label With {.Width = 520, .Height = 30, .Font = fnt}
         lblTime = New Label With {.Width = 520, .Height = 30, .Font = fnt, .ForeColor = Color.DarkBlue}
         counters.Controls.Add(lblTime)
         counters.Controls.Add(lblClicks)	
         counters.Controls.Add(lblArticles)
-        counters.Controls.Add(lblDead)
+        'counters.Controls.Add(lblDead)
         counters.Controls.Add(lblProgress)
 		counters.Padding = New Padding(140, 10, 0, 0)		
         bottomPanel.Controls.Add(counters, 0, 0)
@@ -381,7 +381,7 @@ Public Class Form1
                 img = img.Replace("""", "")
                 If img.StartsWith("http") Then picThumbnail.LoadAsync(img)
             Catch
-                DeadLinks += 1
+                'DeadLinks += 1
             End Try
             Await Task.Delay(rnd.Next(2000, 9000))
             i = (i + 1) Mod ArticlesFound
@@ -414,7 +414,7 @@ Public Class Form1
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblClicks.Text = $"Clics cumulés :    {TotalClicks}"
         lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
-        lblDead.Text = $"Liens morts :    {DeadLinks}"
+        'lblDead.Text = $"Liens morts :    {DeadLinks}"
         lblTime.Text = $"Temps activité :    {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 		UpdateTrayTooltip()																											
     End Sub
