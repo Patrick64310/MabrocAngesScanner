@@ -306,29 +306,29 @@ Public Class Form1
 		AddCustomTitleBar(Me)																								
     End Sub
 
-	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
-	    Dim g = e.Graphics
-	    g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-	    Dim r As Rectangle = New Rectangle(2, 2, pnlStatus.Width - 4, pnlStatus.Height - 4)
-	    ' Halo externe (bord sombre)
-	    Using shadow As New SolidBrush(Color.FromArgb(40, 0, 0, 0))
-	        g.FillEllipse(shadow, r.X - 2, r.Y - 2, r.Width + 4, r.Height + 4)
-	    End Using
-	    ' LED principale
-	    Using brush As New SolidBrush(pnlStatus.BackColor)
-	        g.FillEllipse(brush, r)
-	    End Using
-	    ' Reflet LED (effet brillant)
-	    Using highlight As New SolidBrush(Color.FromArgb(60, 255, 255, 255))
-	        g.FillEllipse(
-	            highlight,
-	            r.X + 6,
-	            r.Y + 6,
-	            r.Width \ 3,
-	            r.Height \ 3
-	        )
-	    End Using
-	End Sub
+'	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
+'	    Dim g = e.Graphics
+'	    g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+'	    Dim r As Rectangle = New Rectangle(2, 2, pnlStatus.Width - 4, pnlStatus.Height - 4)
+'	    ' Halo externe (bord sombre)
+'	    Using shadow As New SolidBrush(Color.FromArgb(40, 0, 0, 0))
+'	        g.FillEllipse(shadow, r.X - 2, r.Y - 2, r.Width + 4, r.Height + 4)
+'	    End Using
+'	    ' LED principale
+'	    Using brush As New SolidBrush(pnlStatus.BackColor)
+'	        g.FillEllipse(brush, r)
+'	    End Using
+'	    ' Reflet LED (effet brillant)
+'	    Using highlight As New SolidBrush(Color.FromArgb(60, 255, 255, 255))
+'	        g.FillEllipse(
+'	            highlight,
+'	            r.X + 6,
+'	            r.Y + 6,
+'	            r.Width \ 3,
+'	            r.Height \ 3
+'	        )
+'	    End Using
+'	End Sub
                                                                           
     ' ===== ANIMATION DU VOYANT (FADE VERT) =====
     'Private Sub AnimateStatus(sender As Object, e As EventArgs)
