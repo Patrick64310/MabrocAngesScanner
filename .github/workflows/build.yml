@@ -1,5 +1,5 @@
 
-name: Build MabrocAngesScanner V6 Stable
+name: Build MabrocAngesScanner
 
 on:
   push:
@@ -20,7 +20,6 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # ✅ ÉTAPE MANQUANTE CRITIQUE
       - name: Restore
         working-directory: ScannerEtsy
         run: dotnet restore
