@@ -5,6 +5,7 @@ Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
 Imports System.Runtime.InteropServices
 Public Class Form1
+	
     Inherits Form
     ' ========= DONNÉES =========
     Private ArticlesUrl As New List(Of String)
