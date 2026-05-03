@@ -3,17 +3,10 @@ Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
 Imports System.Drawing
 Imports Microsoft.Web.WebView2.WinForms
-Imports System.Runtime.InteropServices
-
+Imports System.Runtime.InteropService
 Public Class Form1
     Inherits Form
     ' ========= DONNÉES =========
-	Private Const WM_NCHITTEST As Integer = &H84
-	Private Const WM_NCLBUTTONDOWN As Integer = &HA1
-	Private Const HTCLIENT As Integer = 1
-	Private Const HTCAPTION As Integer = 2
-	Private Const HTCUSTOMBUTTON As Integer = &H8000
-	Private hideButtonRect As Rectangle
     Private ArticlesUrl As New List(Of String)
 	Private trayIcon As NotifyIcon
     Private trayMenu As ContextMenuStrip
@@ -51,70 +44,15 @@ Public Class Form1
 
 	Protected Overrides Sub OnShown(e As EventArgs)
     MyBase.OnShown(e)
-    ' Lancer la routine
+    ' Démarrage automatique une fois le handle créé
     StartAsync(Me, EventArgs.Empty)
-    ' Calcul du bouton HideToTray (à droite du bouton Fermer)
-    Dim captionHeight = SystemInformation.CaptionHeight
-    Dim buttonSize = captionHeight - 4
-    hideButtonRect = New Rectangle(
-        Me.Width - (buttonSize * 4), ' juste à gauche de ❌
-        2,
-        buttonSize,
-        buttonSize
-    )
-    ' Headless après coup
+
+    ' Headless visuel après coup
     Me.WindowState = FormWindowState.Minimized
     Me.ShowInTaskbar = False
     Me.Hide()
 	End Sub
 
-	Protected Overrides Sub WndProc(ByRef m As Message)
-	    Select Case m.Msg
-	        Case WM_NCHITTEST
-	            Dim p = Me.PointToClient(New Point(m.LParam.ToInt32()))
-	            If hideButtonRect.Contains(p) Then
-	                m.Result = CType(HTCUSTOMBUTTON, IntPtr)
-	                Return
-	            End If
-	        Case WM_NCLBUTTONDOWN
-	            If m.WParam.ToInt32() = HTCUSTOMBUTTON Then
-	                HideToTray()
-	                Return
-	            End If
-			Case &H85 ' WM_NCPAINT
-			    MyBase.WndProc(m)
-			    DrawHideButton()
-			    Return
-	    End Select
-	    MyBase.WndProc(m)
-	End Sub
-
-Private Sub DrawHideButton()
-    Using g = Graphics.FromHwnd(Me.Handle)
-        Using b As New SolidBrush(Color.LightGray)
-            g.FillEllipse(b, hideButtonRect)
-        End Using
-        Using pen As New Pen(Color.DimGray, 2)
-            g.DrawEllipse(pen, hideButtonRect)
-        End Using
-        Using f = New Font("Segoe UI", 10, FontStyle.Bold)
-            TextRenderer.DrawText(
-                g,
-                "◉",
-                f,
-                hideButtonRect,
-                Color.Black,
-                TextFormatFlags.HorizontalCenter Or TextFormatFlags.VerticalCenter
-            )
-        End Using
-    End Using
-End Sub
-
-Private Sub HideToTray()
-    Me.Hide()
-    Me.ShowInTaskbar = False
-End Sub
-	
 	Private Function LoadEmbeddedIcon(endsWithName As String) As Icon
 	    Dim asm = GetType(Form1).Assembly
 	    For Each res In asm.GetManifestResourceNames()
@@ -167,6 +105,7 @@ End Sub
         Me.Height = 720
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
+		Me.FormBorderStyle = FormBorderStyle.None
         InitializeUI()
         ApplyWindowIcon()
         uiTimer = New Timer() With {.Interval = 1000}
@@ -364,7 +303,8 @@ End Sub
         webArticle = New WebView2 With {.Visible = False}
         Me.Controls.Add(webPages)
         Me.Controls.Add(webArticle)
-	    InitializeTrayIcon()																																														
+	    InitializeTrayIcon()	
+		AddCustomTitleBar(Me)																								
     End Sub
 
 	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
@@ -512,5 +452,84 @@ End Sub
         lblTime.Text = $"Temps activité :    {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 		UpdateTrayTooltip()																											
     End Sub
+
+																												
+' ===================== BARRE DE TITRE CUSTOM =====================
+
+Private Sub AddCustomTitleBar(parent As Control)
+
+    Dim titleBar As New Panel With {
+        .Height = 32,
+        .Dock = DockStyle.Top,
+        .BackColor = Color.FromArgb(245, 245, 245)
+    }
+
+    AddHandler titleBar.MouseDown, AddressOf DragWindow
+
+    ' Bouton Minimize
+    Dim btnMin As New Button With {
+        .Text = "—",
+        .Width = 44,
+        .Dock = DockStyle.Right,
+        .FlatStyle = FlatStyle.Flat
+    }
+    btnMin.FlatAppearance.BorderSize = 0
+    AddHandler btnMin.Click, Sub()
+        Me.WindowState = FormWindowState.Minimized
+    End Sub
+
+    ' Bouton HideToTray (NOUVELLE COMMANDE)
+    Dim btnHide As New Button With {
+        .Text = "◉",
+        .Width = 44,
+        .Dock = DockStyle.Right,
+        .FlatStyle = FlatStyle.Flat
+    }
+    btnHide.FlatAppearance.BorderSize = 0
+    AddHandler btnHide.Click, Sub()
+        Me.Hide()
+        Me.ShowInTaskbar = False
+    End Sub
+
+    ' Bouton Close
+    Dim btnClose As New Button With {
+        .Text = "✕",
+        .Width = 44,
+        .Dock = DockStyle.Right,
+        .FlatStyle = FlatStyle.Flat
+    }
+    btnClose.FlatAppearance.BorderSize = 0
+    AddHandler btnClose.Click, Sub()
+        Application.Exit()
+    End Sub
+
+    titleBar.Controls.Add(btnClose)
+    titleBar.Controls.Add(btnHide)
+    titleBar.Controls.Add(btnMin)
+
+    parent.Controls.Add(titleBar)
+    titleBar.BringToFront()
+
+End Sub
+
+<DllImport("user32.dll")>
+Private Shared Sub ReleaseCapture()
+End Sub
+
+<DllImport("user32.dll")>
+Private Shared Function SendMessage(
+    hWnd As IntPtr,
+    msg As Integer,
+    wParam As Integer,
+    lParam As Integer
+) As Integer
+End Function
+
+Private Sub DragWindow(sender As Object, e As MouseEventArgs)
+    If e.Button = MouseButtons.Left Then
+        ReleaseCapture()
+        SendMessage(Me.Handle, &HA1, 2, 0)
+    End If
+End Sub
 
 End Class
