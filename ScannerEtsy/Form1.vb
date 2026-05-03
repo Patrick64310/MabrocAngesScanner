@@ -106,7 +106,7 @@ End Sub
 		Me.ShowInTaskbar = False
 		Me.WindowState = FormWindowState.Minimized
 		Me.Visible = False		
-        Me.Text = "Mabroc''Anges – Scanner Etsy"
+        Me.Text = "Mabroc'Anges – Scanner Etsy"
         Me.Width = 1150
         Me.Height = 600
         Me.StartPosition = FormStartPosition.CenterScreen
