@@ -102,7 +102,7 @@ Public Class Form1
 		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
-        Me.Height = 720
+        Me.Height = 700
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
 		Me.FormBorderStyle = FormBorderStyle.None
@@ -142,7 +142,6 @@ Public Class Form1
 	        $"Etat : {stateText}" & vbCrLf &
 	        $"Articles : {ArticlesFound}" & vbCrLf &
 	        $"Clics : {TotalClicks}" & vbCrLf &
-	        $"Morts : {DeadLinks}" & vbCrLf &
 	        $"Temps : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 	    ' Windows limite la longueur, on sécurise
 	    If tooltip.Length > 120 Then
@@ -188,7 +187,7 @@ Public Class Form1
             .FlowDirection = FlowDirection.TopDown,
             .WrapContents = False
         }
-        header.Controls.Add(lblCurrentArticle)
+        'header.Controls.Add(lblCurrentArticle)
         header.Controls.Add(lblArticleTitle)
         root.Controls.Add(header, 0, 0)
         root.Controls.Add(New Panel With {
@@ -255,7 +254,7 @@ Public Class Form1
         counters.Controls.Add(lblTime)
         counters.Controls.Add(lblClicks)	
         counters.Controls.Add(lblArticles)
-        counters.Controls.Add(lblDead)
+        'counters.Controls.Add(lblDead)
         counters.Controls.Add(lblProgress)
 		counters.Padding = New Padding(140, 10, 0, 0)		
         bottomPanel.Controls.Add(counters, 0, 0)
@@ -448,7 +447,7 @@ Public Class Form1
     Private Sub UpdateUI(sender As Object, e As EventArgs)
         lblClicks.Text = $"Clics cumulés :    {TotalClicks}"
         lblArticles.Text = $"Articles trouvés :    {ArticlesFound}"
-        lblDead.Text = $"Liens morts :    {DeadLinks}"
+        'lblDead.Text = $"Liens morts :    {DeadLinks}"
         lblTime.Text = $"Temps activité :    {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 		UpdateTrayTooltip()																											
     End Sub
