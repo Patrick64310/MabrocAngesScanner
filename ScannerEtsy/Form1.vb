@@ -102,7 +102,7 @@ Public Class Form1
 		Me.Visible = False		
         Me.Text = "Mabroc''Anges – Scanner Etsy"
         Me.Width = 1150
-        Me.Height = 720
+        Me.Height = 680
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = Color.AliceBlue
 		Me.FormBorderStyle = FormBorderStyle.None
@@ -134,7 +134,6 @@ Public Class Form1
         End Try
     End Sub
 
-
 	Private Sub UpdateTrayTooltip()
 	    If trayIcon Is Nothing Then Exit Sub
 	    Dim stateText As String = If(Running, "EN COURS", "ARRETE")
@@ -142,7 +141,7 @@ Public Class Form1
 	        $"Etat : {stateText}" & vbCrLf &
 	        $"Articles : {ArticlesFound}" & vbCrLf &
 	        $"Clics : {TotalClicks}" & vbCrLf &
-	        $"Morts : {DeadLinks}" & vbCrLf &
+	        '$"Morts : {DeadLinks}" & vbCrLf &
 	        $"Temps : {(DateTime.Now - LoopStartTime):hh\:mm\:ss}"
 	    ' Windows limite la longueur, on sécurise
 	    If tooltip.Length > 120 Then
@@ -172,7 +171,8 @@ Public Class Form1
             .Font = New Font("Arial", 10, FontStyle.Regular),
             .ForeColor = Color.DarkBlue,
             .Text = "",
-            .TextAlign = ContentAlignment.MiddleLeft
+            .TextAlign = ContentAlignment.MiddleLeft,
+			.visible = false						
         }
         lblArticleTitle = New Label With {
             .AutoSize = False,
@@ -307,40 +307,6 @@ Public Class Form1
 		AddCustomTitleBar(Me)																								
     End Sub
 
-	Private Sub DrawLed(sender As Object, e As PaintEventArgs)
-	    Dim g = e.Graphics
-	    g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-	    Dim r As Rectangle = New Rectangle(2, 2, pnlStatus.Width - 4, pnlStatus.Height - 4)
-	    ' Halo externe (bord sombre)
-	    Using shadow As New SolidBrush(Color.FromArgb(40, 0, 0, 0))
-	        g.FillEllipse(shadow, r.X - 2, r.Y - 2, r.Width + 4, r.Height + 4)
-	    End Using
-	    ' LED principale
-	    Using brush As New SolidBrush(pnlStatus.BackColor)
-	        g.FillEllipse(brush, r)
-	    End Using
-	    ' Reflet LED (effet brillant)
-	    Using highlight As New SolidBrush(Color.FromArgb(60, 255, 255, 255))
-	        g.FillEllipse(
-	            highlight,
-	            r.X + 6,
-	            r.Y + 6,
-	            r.Width \ 3,
-	            r.Height \ 3
-	        )
-	    End Using
-	End Sub
-                                                                          
-    ' ===== ANIMATION DU VOYANT (FADE VERT) =====
-    'Private Sub AnimateStatus(sender As Object, e As EventArgs)
-    '    If Not Running Then Exit Sub
-    '    fadeValue += fadeDir * 8
-    '    If fadeValue >= 255 Then fadeValue = 255 : fadeDir = -1
-    '    If fadeValue <= 80 Then fadeValue = 80 : fadeDir = 1
-    '    pnlStatus.BackColor = Color.FromArgb(0, fadeValue, 0)
-	'	pnlStatus.Invalidate()																									
-    'End Sub
-
     ' ================= START =================
     Private Async Sub StartAsync(sender As Object, e As EventArgs)
 		'trayIcon.Icon = trayIconRun
@@ -367,7 +333,7 @@ Public Class Form1
         uiTimer.Start()
         For page = 1 To 10
             webPages.Source = New Uri($"https://www.etsy.com/fr/shop/mabrocanges?page={page}")
-            Await Task.Delay(3300)
+            Await Task.Delay(4500)
             Dim html = Await webPages.ExecuteScriptAsync("document.documentElement.outerHTML")
             html = html.Replace("""", "")
 			If html.Contains("Aucun article en vente pour le moment") Then Exit For
